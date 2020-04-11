@@ -24,4 +24,4 @@ console.log(cdr(p));
 console.log(symbol(test));
 console.log(nom(test));
 console.log(nil);
-parse('(1 2 hello "groove town") (3 2 ,@a (4 5))', gotExp);
+parse('(1 2 hello "groove town") `(3 2 (1 0) ,@a (9 ,z ,@(4 5)))', gotExp);

@@ -158,6 +158,10 @@ function quote(q: string): symbol {
 function parseToken(token: string): void {
   if (token === "(") {
     listStack = join(nil, listStack);
+
+    quoteStack = join(quoteNext, quoteStack);
+    quoteNext = "";
+
     return;
   }
 
@@ -165,6 +169,9 @@ function parseToken(token: string): void {
     if (listStack === nil) {
       throw new Error("bad ')'");
     } else {
+      let q: string = car(quoteStack as Pair) as string;
+      quoteStack = cdr(quoteStack as Pair);
+
       // reverse list
       let list: BelT = car(listStack as Pair);
       listStack = cdr(listStack as Pair);
@@ -174,6 +181,10 @@ function parseToken(token: string): void {
       while (list !== nil) {
         xs = join(car(list as Pair), xs);
         list = cdr(list as Pair);
+      }
+
+      if (q !== "") {
+        xs = join(quote(q), join(xs, nil));
       }
 
       if (listStack === nil) {
