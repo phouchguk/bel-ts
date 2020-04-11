@@ -122,12 +122,39 @@ let listStack: BelT = nil;
 
 function pushLs(x: BelT): void {
   let list: BelT = car(listStack as Pair);
-  listStack = cdr(listStack as Pair);
   list = join(x, list);
-  listStack = join(list, listStack);
+
+  listStack = join(list, cdr(listStack as Pair));
+}
+
+function isQuote(c: string): boolean {
+  return c === "'" || c === "`" || c === "," || c === ",@";
+}
+
+let quoteNext: string = "";
+
+function quote(q: string): symbol {
+  switch (q) {
+    case "'":
+      return sym("quote");
+    case "`":
+      return sym("bquote");
+    case ",":
+      return sym("comma");
+    case ",@":
+      return sym("comma-at");
+
+    default:
+      throw new Error("unrecognised quote: " + q);
+  }
 }
 
 function parseToken(token: string): void {
+  if (isQuote(token)) {
+    quoteNext = token;
+    return;
+  }
+
   if (token === "(") {
     listStack = join(nil, listStack);
     return;
@@ -160,7 +187,8 @@ function parseToken(token: string): void {
     return;
   }
 
-  let atom: Atom = nil;
+  // might be quoted, so BelT not an Atom
+  let atom: BelT = nil;
 
   const nr: number = parseFloat(token);
 
@@ -177,6 +205,11 @@ function parseToken(token: string): void {
     }
   } else {
     atom = nr;
+  }
+
+  if (quoteNext.length > 0) {
+    atom = join(quote(quoteNext), join(atom, nil));
+    quoteNext = "";
   }
 
   if (listStack === nil) {
