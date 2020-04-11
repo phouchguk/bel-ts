@@ -14,3 +14,4 @@ export function symbol(x: BelT): boolean {
 }
 
 export const nil: symbol = sym("nil");
+export const t: symbol = sym("t");

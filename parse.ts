@@ -1,5 +1,5 @@
 import { Atom, BelT, Pair } from "./type";
-import { nil, sym } from "./sym";
+import { nil, sym, t } from "./sym";
 import { car, cdr, join } from "./pair";
 
 type Cb = (x: BelT) => void;
@@ -78,9 +78,10 @@ function parseChar(c: string): void {
       comma = false;
 
       if (c === "@") {
-        parseToken(",@");
+        quoteNext = ",@";
       } else {
-        parseToken(",");
+        quoteNext = ",";
+
         parseChar(c);
       }
 
@@ -111,7 +112,11 @@ function parseChar(c: string): void {
         return;
       }
 
-      parseToken(c);
+      if (c === "(" || c === ")") {
+        parseToken(c);
+      } else {
+        quoteNext = c;
+      }
     } else {
       token.push(c);
     }
@@ -119,6 +124,7 @@ function parseChar(c: string): void {
 }
 
 let listStack: BelT = nil;
+let quoteStack: BelT = nil;
 
 function pushLs(x: BelT): void {
   let list: BelT = car(listStack as Pair);
@@ -150,11 +156,6 @@ function quote(q: string): symbol {
 }
 
 function parseToken(token: string): void {
-  if (isQuote(token)) {
-    quoteNext = token;
-    return;
-  }
-
   if (token === "(") {
     listStack = join(nil, listStack);
     return;
