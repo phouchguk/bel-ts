@@ -1,6 +1,5 @@
 import { BelT, ExpressionHandler, Pair } from "./type";
 import { car, length } from "./pair";
-import { nil } from "./sym";
 import { evaluate } from "./bel";
 import { Environment } from "./environment";
 
@@ -51,6 +50,6 @@ export class IfCont extends Continuation {
   }
 
   resume(v: BelT): void {
-    evaluate(v === nil ? this.ef : this.et, this.r, this.k as Continuation);
+    evaluate(v === null ? this.ef : this.et, this.r, this.k as Continuation);
   }
 }

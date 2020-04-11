@@ -1,4 +1,4 @@
-export class Pair {
+export class Cell {
   a: BelT;
   d: BelT;
 
@@ -9,5 +9,6 @@ export class Pair {
 }
 
 export type ExpressionHandler = (x: BelT) => void;
-export type Atom = number | string | symbol;
-export type BelT = Atom | Pair;
+export type Atom = number | string | symbol | null;
+export type Pair = Cell | null;
+export type BelT = Atom | Cell;

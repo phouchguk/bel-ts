@@ -6,6 +6,10 @@ export function nom(sym: symbol): string {
 }
 
 export function sym(s: string): symbol {
+  if (s === "nil") {
+    throw new Error("can't create symbol 'nil'");
+  }
+
   return Symbol.for(s);
 }
 
@@ -13,5 +17,4 @@ export function symbol(x: BelT): boolean {
   return typeof x === "symbol";
 }
 
-export const nil: symbol = sym("nil");
 export const t: symbol = sym("t");

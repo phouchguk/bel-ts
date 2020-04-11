@@ -1,5 +1,5 @@
 import { BelT, Pair } from "./type";
-import { nil, nom, symbol } from "./sym";
+import { nom, symbol } from "./sym";
 import { atom, car, cdr, pair } from "./pair";
 
 export function print(exp: BelT, output: string[]) {
@@ -9,7 +9,7 @@ export function print(exp: BelT, output: string[]) {
     let xs: BelT = exp;
     let first: boolean = true;
 
-    while (xs !== nil) {
+    while (xs !== null) {
       if (!first) {
         output.push(" ");
       }
@@ -38,6 +38,8 @@ export function print(exp: BelT, output: string[]) {
   } else if (prim(exp)) {
     output.push(`<prim:${nom(exp.name)}>`);
 	*/
+  } else if (exp === null) {
+    output.push("nil");
   } else if (typeof exp === "string") {
     output.push(
       '"' +

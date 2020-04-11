@@ -1,5 +1,5 @@
 import { Atom, BelT, ExpressionHandler, Pair } from "./type";
-import { nil, sym, t } from "./sym";
+import { sym, t } from "./sym";
 import { car, cdr, join } from "./pair";
 
 let send: null | ExpressionHandler = null;
@@ -121,14 +121,14 @@ function parseChar(c: string): void {
   }
 }
 
-let listStack: BelT = nil;
-let quoteStack: BelT = nil;
+let listStack: Pair = null;
+let quoteStack: Pair = null;
 
 function pushLs(x: BelT): void {
-  let list: BelT = car(listStack as Pair);
+  let list: BelT = car(listStack);
   list = join(x, list);
 
-  listStack = join(list, cdr(listStack as Pair));
+  listStack = join(list, cdr(listStack));
 }
 
 function isQuote(c: string): boolean {
@@ -155,7 +155,7 @@ function quote(q: string): symbol {
 
 function parseToken(token: string): void {
   if (token === "(") {
-    listStack = join(nil, listStack);
+    listStack = join(null, listStack);
 
     quoteStack = join(quoteNext, quoteStack);
     quoteNext = "";
@@ -164,28 +164,28 @@ function parseToken(token: string): void {
   }
 
   if (token === ")") {
-    if (listStack === nil) {
+    if (listStack === null) {
       throw new Error("bad ')'");
     } else {
-      let q: string = car(quoteStack as Pair) as string;
-      quoteStack = cdr(quoteStack as Pair);
+      let q: string = car(quoteStack) as string;
+      quoteStack = cdr(quoteStack) as Pair;
 
       // reverse list
-      let list: BelT = car(listStack as Pair);
-      listStack = cdr(listStack as Pair);
+      let list: Pair = car(listStack) as Pair;
+      listStack = cdr(listStack) as Pair;
 
-      let xs: BelT = nil;
+      let xs: Pair = null;
 
-      while (list !== nil) {
-        xs = join(car(list as Pair), xs);
-        list = cdr(list as Pair);
+      while (list !== null) {
+        xs = join(car(list), xs);
+        list = cdr(list) as Pair;
       }
 
       if (q !== "") {
-        xs = join(quote(q), join(xs, nil));
+        xs = join(quote(q), join(xs, null));
       }
 
-      if (listStack === nil) {
+      if (listStack === null) {
         // finished top level list
         (send as ExpressionHandler)(xs);
       } else {
@@ -198,7 +198,7 @@ function parseToken(token: string): void {
   }
 
   // might be quoted, so BelT not an Atom
-  let atom: BelT = nil;
+  let atom: BelT = null;
 
   const nr: number = parseFloat(token);
 
@@ -211,18 +211,22 @@ function parseToken(token: string): void {
         .replace(/\\\r/g, "\r")
         .replace(/\\\t/g, "\t");
     } else {
-      atom = sym(token);
+      if (token === "nil") {
+        atom = null;
+      } else {
+        atom = sym(token);
+      }
     }
   } else {
     atom = nr;
   }
 
   if (quoteNext.length > 0) {
-    atom = join(quote(quoteNext), join(atom, nil));
+    atom = join(quote(quoteNext), join(atom, null));
     quoteNext = "";
   }
 
-  if (listStack === nil) {
+  if (listStack === null) {
     (send as ExpressionHandler)(atom);
   } else {
     // parsing a list
