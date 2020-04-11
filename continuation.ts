@@ -11,7 +11,7 @@ export abstract class Continuation {
     this.k = k;
   }
 
-  invoke(vx: Pair, r: Environment, k: Continuation): void {
+  invoke(vx: Pair, _r: Environment, _k: Continuation): void {
     if (length(vx) === 1) {
       this.resume(car(vx));
       return;

@@ -53,7 +53,7 @@ function selfEvaluating(x: BelT) {
   );
 }
 
-function evaluateQuote(v: BelT, r: Environment, k: Continuation) {
+function evaluateQuote(v: BelT, _: Environment, k: Continuation) {
   k.resume(v);
 }
 

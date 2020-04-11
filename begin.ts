@@ -15,7 +15,7 @@ export class BeginCont extends Continuation {
     this.r = r;
   }
 
-  resume(v: BelT): void {
+  resume(_: BelT): void {
     evaluateBegin(cdr(this.ex), this.r, this.k as Continuation);
   }
 }

@@ -6,7 +6,7 @@ export abstract class Environment {
 }
 
 export class NullEnv extends Environment {
-  lookup(n: symbol, k: Continuation) {
+  lookup(n: symbol, _: Continuation) {
     throw new Error("Unknown variable: " + nom(n));
   }
 }

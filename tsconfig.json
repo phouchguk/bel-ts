@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "alwaysStrict": true,
+        "noImplicitAny": true,
+        "removeComments": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "target": "es6",
+        "module": "commonjs"
+    },
+    "files": [
+        "./main.ts"
+    ]
+}
