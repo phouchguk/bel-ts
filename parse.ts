@@ -1,5 +1,5 @@
-import { Atom, BelT, ExpressionHandler, Pair } from "./type";
-import { sym, t } from "./sym";
+import { BelT, ExpressionHandler, Pair } from "./type";
+import { sym } from "./sym";
 import { car, cdr, join } from "./pair";
 
 let send: null | ExpressionHandler = null;
@@ -129,10 +129,6 @@ function pushLs(x: BelT): void {
   list = join(x, list);
 
   listStack = join(list, cdr(listStack));
-}
-
-function isQuote(c: string): boolean {
-  return c === "'" || c === "`" || c === "," || c === ",@";
 }
 
 let quoteNext: string = "";

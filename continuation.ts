@@ -1,6 +1,5 @@
 import { BelT, ExpressionHandler, Pair } from "./type";
 import { car, length } from "./pair";
-import { evaluate } from "./bel";
 import { Environment } from "./environment";
 
 export abstract class Continuation {

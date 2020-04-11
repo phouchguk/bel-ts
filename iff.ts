@@ -1,5 +1,4 @@
 import { BelT } from "./type";
-import { car, cdr, pair } from "./pair";
 import { Continuation } from "./continuation";
 import { Environment } from "./environment";
 import { evaluate } from "./bel";

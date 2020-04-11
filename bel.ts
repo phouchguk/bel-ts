@@ -18,9 +18,11 @@ function cadddr(e: Pair): BelT {
   return car(cdr(cdr(cdr(e) as Pair) as Pair) as Pair);
 }
 
+/*
 function cddr(e: Pair): BelT {
   return cdr(cdr(e) as Pair);
 }
+*/
 
 function number(x: BelT) {
   return typeof x === "number";
