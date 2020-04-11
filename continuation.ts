@@ -35,21 +35,3 @@ export class BaseCont extends Continuation {
     this.f(v);
   }
 }
-
-export class IfCont extends Continuation {
-  et: BelT;
-  ef: BelT;
-  r: Environment;
-
-  constructor(k: Continuation, et: BelT, ef: BelT, r: Environment) {
-    super(k);
-
-    this.et = et;
-    this.ef = ef;
-    this.r = r;
-  }
-
-  resume(v: BelT): void {
-    evaluate(v === null ? this.ef : this.et, this.r, this.k as Continuation);
-  }
-}

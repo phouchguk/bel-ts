@@ -3,7 +3,7 @@ import { nom, sym, symbol } from "./sym";
 import { car, cdr, join, pair } from "./pair";
 import { parse } from "./parse";
 import { print } from "./print";
-import { BaseCont, IfCont } from "./continuation";
+import { BaseCont } from "./continuation";
 import { theEmptyEnvironment } from "./environment";
 import { evaluate } from "./bel";
 
@@ -41,5 +41,5 @@ console.log(symbol(test));
 console.log(nom(test));
 */
 
-parse("'(1 2 3)", gotExp);
+parse("(iff nil 42 '(1 2 3))", gotExp);
 //parse('(1 2 hello "groove town") `(3 2 nil (1 0) ,@a (9 ,z ,@(4 5)))', gotExp);

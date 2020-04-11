@@ -3,6 +3,7 @@ import { atom, car, cdr, pair } from "./pair";
 import { sym, symbol, t } from "./sym";
 import { Continuation } from "./continuation";
 import { Environment } from "./environment";
+import { evaluateIf } from "./iff";
 
 function cadr(e: Pair): BelT {
   return car(cdr(e) as Pair);
@@ -36,6 +37,7 @@ const apply = sym("apply");
 const o = sym("o");
 const lit = sym("lit");
 const quote = sym("quote");
+const iff = sym("iff");
 
 function selfEvaluating(x: BelT) {
   return (
@@ -73,11 +75,11 @@ export function evaluate(e: BelT, r: Environment, k: Continuation): void {
       evaluateQuote(cadr(p), r, k);
       break;
 
-    /*
     case iff:
-      evaluateIf(cadr(e), caddr(e), cadddr(e), r, k);
+      evaluateIf(cadr(p), caddr(p), cadddr(p), r, k);
       break;
 
+    /*
     case begin:
       evaluateBegin(cdr(e), r, k);
       break;
