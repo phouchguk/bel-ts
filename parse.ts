@@ -21,25 +21,74 @@ export function parse(s: string, callback: Cb): void {
   }
 }
 
+let inStr: boolean = false;
+let strEscape: boolean = false;
+
 function parseChar(c: string): void {
-  if (c.trim() === "") {
-    if (token.length > 0) {
-      parseToken(token.join(""));
-      token.length = 0;
+  if (inStr) {
+    if (strEscape) {
+      strEscape = false;
+
+      switch (c) {
+        case '"':
+          token.push(c);
+          return;
+
+        case "r":
+          token.push("\r");
+          return;
+
+        case "n":
+          token.push("\n");
+          return;
+
+        case "t":
+          token.push("\t");
+          return;
+
+        default:
+          throw new Error("unrecognised escape sequence \\" + c);
+      }
     }
 
-    return;
-  }
-
-  if (c === "(" || c === ")") {
-    if (token.length > 0) {
-      parseToken(token.join(""));
-      token.length = 0;
+    if (c === "\\") {
+      strEscape = true;
+      return;
     }
 
-    parseToken(c);
-  } else {
     token.push(c);
+
+    if (c === '"') {
+      inStr = false;
+      parseToken(token.join(""));
+      token.length = 0;
+    }
+  } else {
+    if (c.trim() === "") {
+      if (token.length > 0) {
+        parseToken(token.join(""));
+        token.length = 0;
+      }
+
+      return;
+    }
+
+    if (c === '"') {
+      inStr = true;
+      token.push(c);
+      return;
+    }
+
+    if (c === "(" || c === ")") {
+      if (token.length > 0) {
+        parseToken(token.join(""));
+        token.length = 0;
+      }
+
+      parseToken(c);
+    } else {
+      token.push(c);
+    }
   }
 }
 

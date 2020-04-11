@@ -43,9 +43,9 @@ export function print(exp: BelT, output: string[]) {
       '"' +
         exp
           .replace(/"/g, '\\"')
-          .replace(/\n/g, "\\\n")
-          .replace(/\t/g, "\\\t")
-          .replace(/\r/g, "\\\r") +
+          .replace(/\n/g, "\\n")
+          .replace(/\t/g, "\\t")
+          .replace(/\r/g, "\\r") +
         '"'
     );
   } else {
