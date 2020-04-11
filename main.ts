@@ -41,5 +41,5 @@ console.log(symbol(test));
 console.log(nom(test));
 */
 
-parse("(iff nil 42 '(1 2 3))", gotExp);
+parse("(do 1 2 (iff nil 42 '(1 2 3)))", gotExp);
 //parse('(1 2 hello "groove town") `(3 2 nil (1 0) ,@a (9 ,z ,@(4 5)))', gotExp);
