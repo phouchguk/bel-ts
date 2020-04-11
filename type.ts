@@ -8,4 +8,5 @@ export class Pair {
   }
 }
 
-export type BelT = number | string | symbol | Pair;
+export type Atom = number | string | symbol;
+export type BelT = Atom | Pair;
