@@ -23,6 +23,7 @@ export function parse(s: string, callback: Cb): void {
 
 let inStr: boolean = false;
 let strEscape: boolean = false;
+let comma: boolean = false;
 
 function parseChar(c: string): void {
   if (inStr) {
@@ -73,16 +74,41 @@ function parseChar(c: string): void {
       return;
     }
 
+    if (comma) {
+      comma = false;
+
+      if (c === "@") {
+        parseToken(",@");
+      } else {
+        parseToken(",");
+        parseChar(c);
+      }
+
+      return;
+    }
+
     if (c === '"') {
       inStr = true;
       token.push(c);
       return;
     }
 
-    if (c === "(" || c === ")") {
+    if (
+      c === "(" ||
+      c === ")" ||
+      c === "'" ||
+      c === "`" ||
+      c === "`" ||
+      c === ","
+    ) {
       if (token.length > 0) {
         parseToken(token.join(""));
         token.length = 0;
+      }
+
+      if (c === ",") {
+        comma = true;
+        return;
       }
 
       parseToken(c);

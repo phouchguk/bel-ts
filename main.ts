@@ -24,4 +24,4 @@ console.log(cdr(p));
 console.log(symbol(test));
 console.log(nom(test));
 console.log(nil);
-parse('(1 2 hello "groove \\t\\"town\\"") (3 2 1)', gotExp);
+parse('(1 2 hello "groove \\t\\"town\\"") (3 2 1 `(4 5))', gotExp);
