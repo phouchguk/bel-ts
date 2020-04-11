@@ -1,4 +1,5 @@
 import { BelT, Pair } from "./type";
+import { nil } from "./sym";
 
 export function join(a: BelT, d: BelT): Pair {
   return new Pair(a, d);
@@ -28,4 +29,15 @@ export function pair(x: BelT): boolean {
 
 export function atom(x: BelT): boolean {
   return !pair(x);
+}
+
+export function length(xs: BelT) {
+  let len: number = 0;
+
+  while (xs !== nil) {
+    len++;
+    xs = cdr(xs as Pair);
+  }
+
+  return len;
 }

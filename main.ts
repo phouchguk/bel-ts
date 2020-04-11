@@ -3,6 +3,8 @@ import { nil, nom, sym, symbol } from "./sym";
 import { car, cdr, join, pair } from "./pair";
 import { parse } from "./parse";
 import { print } from "./print";
+import { BaseCont, IfCont } from "./continuation";
+import { theEmptyEnvironment } from "./environment";
 
 const p: Pair = join(1, join(2, join(3, nil)));
 const test: symbol = sym("hello");
@@ -16,6 +18,10 @@ function gotExp(exp: BelT): void {
     console.log("got expression:", output.join(""));
   }
 }
+
+console.log(
+  new IfCont(new BaseCont(null, gotExp), nil, nil, theEmptyEnvironment)
+);
 
 console.log(p);
 console.log(pair(p));

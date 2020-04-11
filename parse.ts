@@ -1,13 +1,11 @@
-import { Atom, BelT, Pair } from "./type";
+import { Atom, BelT, ExpressionHandler, Pair } from "./type";
 import { nil, sym, t } from "./sym";
 import { car, cdr, join } from "./pair";
 
-type Cb = (x: BelT) => void;
-
-let send: null | Cb = null;
+let send: null | ExpressionHandler = null;
 const token: string[] = [];
 
-export function parse(s: string, callback: Cb): void {
+export function parse(s: string, callback: ExpressionHandler): void {
   send = callback;
   const chars: string[] = s.split("");
 
@@ -189,7 +187,7 @@ function parseToken(token: string): void {
 
       if (listStack === nil) {
         // finished top level list
-        (send as Cb)(xs);
+        (send as ExpressionHandler)(xs);
       } else {
         // nested list
         pushLs(xs);
@@ -225,7 +223,7 @@ function parseToken(token: string): void {
   }
 
   if (listStack === nil) {
-    (send as Cb)(atom);
+    (send as ExpressionHandler)(atom);
   } else {
     // parsing a list
     pushLs(atom);

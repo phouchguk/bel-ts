@@ -8,5 +8,6 @@ export class Pair {
   }
 }
 
+export type ExpressionHandler = (x: BelT) => void;
 export type Atom = number | string | symbol;
 export type BelT = Atom | Pair;
