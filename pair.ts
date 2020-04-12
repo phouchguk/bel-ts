@@ -38,6 +38,18 @@ export function atom(x: BelT): boolean {
   return !pair(x);
 }
 
+export function toArray(xs: Pair): BelT[] {
+  let arr: BelT[] = [];
+  let i: number = 0;
+
+  while (xs !== null) {
+    arr[i++] = car(xs);
+    xs = cdr(xs) as Pair;
+  }
+
+  return arr;
+}
+
 export function length(xs: Pair): number {
   let len: number = 0;
 

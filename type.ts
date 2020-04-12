@@ -1,4 +1,5 @@
-import { Fn } from "./value";
+import { Continuation } from "./continuation";
+import { Value } from "./value";
 
 export class Cell {
   a: BelT;
@@ -11,6 +12,6 @@ export class Cell {
 }
 
 export type ExpressionHandler = (x: BelT) => void;
-export type Atom = number | string | symbol | Fn | null;
+export type Atom = number | string | symbol | Value | Continuation | null;
 export type Pair = Cell | null;
 export type BelT = Atom | Cell;
