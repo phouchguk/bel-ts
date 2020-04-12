@@ -3,7 +3,7 @@ import { Continuation } from "./continuation";
 import { Environment } from "./environment";
 import { evaluate } from "./bel";
 
-export class IfCont extends Continuation {
+class IfCont extends Continuation {
   et: BelT;
   ef: BelT;
   r: Environment;

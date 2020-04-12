@@ -4,7 +4,7 @@ import { Continuation } from "./continuation";
 import { Environment } from "./environment";
 import { evaluate } from "./bel";
 
-export class BeginCont extends Continuation {
+class BeginCont extends Continuation {
   ex: Pair;
   r: Environment;
 

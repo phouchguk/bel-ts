@@ -3,7 +3,7 @@ import { Continuation } from "./continuation";
 import { Environment } from "./environment";
 import { evaluate } from "./bel";
 
-export class SetCont extends Continuation {
+class SetCont extends Continuation {
   n: symbol;
   r: Environment;
 
