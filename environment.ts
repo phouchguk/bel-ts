@@ -79,11 +79,23 @@ export function extendEnv(
   values: BelT
 ): VariableEnv {
   if (pair(names) && pair(values)) {
-    return new VariableEnv(
-      extendEnv(env, cdr(names as Pair), cdr(values as Pair)),
-      car(names as Pair) as symbol,
-      car(values as Pair)
+    let n: BelT = car(names as Pair);
+    let v: BelT = car(values as Pair);
+    let rest: VariableEnv = extendEnv(
+      env,
+      cdr(names as Pair),
+      cdr(values as Pair)
     );
+
+    if (symbol(n)) {
+      return new VariableEnv(rest, n as symbol, v);
+    }
+
+    if (pair(n)) {
+      return extendEnv(rest, n, v);
+    }
+
+    throw new Error("invalid parameter");
   }
 
   if (names === null && values === null) {
