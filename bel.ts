@@ -7,6 +7,7 @@ import { Fn } from "./value";
 import { evaluateIf } from "./iff";
 import { evaluateBegin } from "./begin";
 import { evaluateSet } from "./set";
+import { evaluateApplication } from "./application";
 
 function cadr(e: Pair): BelT {
   return car(cdr(e) as Pair);
@@ -106,9 +107,7 @@ export function evaluate(e: BelT, r: Environment, k: Continuation): void {
       evaluateLambda(cadr(p), cddr(p), r, k);
       break;
 
-    /*
     default:
-      evaluateApplication(car(e), cdr(e), r, k);
-			*/
+      evaluateApplication(car(p), cdr(p), r, k);
   }
 }

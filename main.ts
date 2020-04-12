@@ -26,5 +26,5 @@ function gotResult(result: BelT): void {
   pr("result", result);
 }
 
-parse("(do (set x 42) 1 2 (iff t (fn (x) x) '(1 2 3)))", gotExp);
+parse("(do (set x 42) 1 2 (iff t ((fn (x) x) x) '(1 2 3)))", gotExp);
 //parse('(1 2 hello "groove town") `(3 2 nil (1 0) ,@a (9 ,z ,@(4 5)))', gotExp);
