@@ -3,6 +3,7 @@ import { atom, car, cdr, pair } from "./pair";
 import { sym, symbol, t } from "./sym";
 import { Continuation } from "./continuation";
 import { Environment } from "./environment";
+import { Fn } from "./value";
 import { evaluateIf } from "./iff";
 import { evaluateBegin } from "./begin";
 import { evaluateSet } from "./set";
@@ -19,33 +20,32 @@ function cadddr(e: Pair): BelT {
   return car(cdr(cdr(cdr(e) as Pair) as Pair) as Pair);
 }
 
-/*
 function cddr(e: Pair): BelT {
   return cdr(cdr(e) as Pair);
 }
-*/
 
-function number(x: BelT) {
+function number(x: BelT): boolean {
   return typeof x === "number";
 }
 
-function string(x: BelT) {
+function string(x: BelT): boolean {
   return typeof x === "string";
 }
 
-function taggedList(x: Pair, tag: symbol) {
+function taggedList(x: Pair, tag: symbol): boolean {
   return pair(x) && car(x) === tag;
 }
 
-const apply = sym("apply");
-const o = sym("o");
-const lit = sym("lit");
-const quote = sym("quote");
-const iff = sym("iff");
-const begin = sym("do");
-const set = sym("set");
+const apply: symbol = sym("apply");
+const o: symbol = sym("o");
+const lit: symbol = sym("lit");
+const quote: symbol = sym("quote");
+const iff: symbol = sym("iff");
+const begin: symbol = sym("do");
+const set: symbol = sym("set");
+const lambda: symbol = sym("fn");
 
-function selfEvaluating(x: BelT) {
+function selfEvaluating(x: BelT): boolean {
   return (
     x === null ||
     number(x) ||
@@ -55,12 +55,21 @@ function selfEvaluating(x: BelT) {
   );
 }
 
-function evaluateQuote(v: BelT, _: Environment, k: Continuation) {
+function evaluateQuote(v: BelT, _: Environment, k: Continuation): void {
   k.resume(v);
 }
 
-function evaluateVariable(n: symbol, r: Environment, k: Continuation) {
+function evaluateVariable(n: symbol, r: Environment, k: Continuation): void {
   r.lookup(n, k);
+}
+
+function evaluateLambda(
+  nx: BelT,
+  ex: BelT,
+  r: Environment,
+  k: Continuation
+): void {
+  k.resume(new Fn(nx, ex, r));
 }
 
 export function evaluate(e: BelT, r: Environment, k: Continuation): void {
@@ -93,11 +102,11 @@ export function evaluate(e: BelT, r: Environment, k: Continuation): void {
       evaluateSet(cadr(p) as symbol, caddr(p), r, k);
       break;
 
-    /*
     case lambda:
-      evaluateLambda(cadr(e), cddr(e), r, k);
+      evaluateLambda(cadr(p), cddr(p), r, k);
       break;
 
+    /*
     default:
       evaluateApplication(car(e), cdr(e), r, k);
 			*/

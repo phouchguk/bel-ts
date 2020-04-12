@@ -1,5 +1,6 @@
-import { BelT } from "./type";
-import { nom, sym } from "./sym";
+import { BelT, Pair } from "./type";
+import { nom, sym, symbol } from "./sym";
+import { car, cdr, pair } from "./pair";
 import { Continuation } from "./continuation";
 
 export abstract class Environment {
@@ -71,3 +72,27 @@ export const initialEnvironment = new VariableEnv(
   sym("version"),
   0.1
 );
+
+export function extendEnv(
+  env: VariableEnv,
+  names: BelT,
+  values: BelT
+): VariableEnv {
+  if (pair(names) && pair(values)) {
+    return new VariableEnv(
+      extendEnv(env, cdr(names as Pair), cdr(values as Pair)),
+      car(names as Pair) as symbol,
+      car(values as Pair)
+    );
+  }
+
+  if (names === null && values === null) {
+    return env;
+  }
+
+  if (symbol(names)) {
+    return new VariableEnv(env, names as symbol, values);
+  }
+
+  throw new Error("Arity mismatch -- EXTENDENV");
+}

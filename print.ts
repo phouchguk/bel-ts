@@ -1,6 +1,7 @@
 import { BelT, Pair } from "./type";
 import { nom, symbol } from "./sym";
 import { atom, car, cdr, pair } from "./pair";
+import { fn } from "./value";
 
 export function print(exp: BelT, output: string[]) {
   if (pair(exp)) {
@@ -32,9 +33,9 @@ export function print(exp: BelT, output: string[]) {
 
   if (symbol(exp)) {
     output.push(nom(exp as symbol));
-    /*
   } else if (fn(exp)) {
     output.push("<fn>");
+    /*
   } else if (prim(exp)) {
     output.push(`<prim:${nom(exp.name)}>`);
 	*/
