@@ -38,7 +38,7 @@ export function atom(x: BelT): boolean {
   return !pair(x);
 }
 
-export function length(xs: Pair) {
+export function length(xs: Pair): number {
   let len: number = 0;
 
   while (xs !== null) {

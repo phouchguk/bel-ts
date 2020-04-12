@@ -5,6 +5,7 @@ import { Continuation } from "./continuation";
 import { Environment } from "./environment";
 import { evaluateIf } from "./iff";
 import { evaluateBegin } from "./begin";
+import { evaluateSet } from "./set";
 
 function cadr(e: Pair): BelT {
   return car(cdr(e) as Pair);
@@ -42,6 +43,7 @@ const lit = sym("lit");
 const quote = sym("quote");
 const iff = sym("iff");
 const begin = sym("do");
+const set = sym("set");
 
 function selfEvaluating(x: BelT) {
   return (
@@ -87,11 +89,11 @@ export function evaluate(e: BelT, r: Environment, k: Continuation): void {
       evaluateBegin(cdr(p), r, k);
       break;
 
-    /*
     case set:
-      evaluateSet(cadr(e), caddr(e), r, k);
+      evaluateSet(cadr(p) as symbol, caddr(p), r, k);
       break;
 
+    /*
     case lambda:
       evaluateLambda(cadr(e), cddr(e), r, k);
       break;
