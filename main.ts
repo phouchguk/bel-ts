@@ -50,8 +50,8 @@ function equal(e1: BelT, e2: BelT): boolean {
       return false;
     }
 
-    let p1: Pair = e1 as Pair;
-    let p2: Pair = e2 as Pair;
+    const p1: Pair = e1 as Pair;
+    const p2: Pair = e2 as Pair;
 
     return equal(car(p1), car(p2)) && equal(cdr(p1), cdr(p2));
   } else {
@@ -63,19 +63,28 @@ function expandSymbol(sm: symbol): BelT {
   let s: string = nom(sm);
 
   if (s.indexOf("|") > -1) {
-    let parts: string[] = s.split("|");
+    const parts: string[] = s.split("|");
     return join(t, join(sym(parts[0]), join(sym(parts[1]), null)));
   }
 
-  if (s.indexOf(".") > -1) {
-    let parts: string[] = s.split(".");
-    return join(sym(parts[0]), join(sym(parts[1]), null));
-  }
+  if (s.indexOf(".") > -1 || s.indexOf("!") > -1) {
+    // check first char
 
-  if (s.indexOf("!") > -1) {
-    let parts: string[] = s.split("!");
-    let q: Pair = join(sym("quote"), join(sym(parts[1]), null));
-    return join(sym(parts[0]), join(q, null));
+    const splitters = s.split("").filter(s => s === "." || s === "!");
+    const parts: string[] = s.split(/[!\.]/);
+    let result: Pair = null;
+
+    for (let i: number = parts.length - 1, j: number = -1; i >= 0; i--, j++) {
+      let psm: BelT = sym(parts[i]);
+
+      if (j > -1 && splitters[j] === "!") {
+        psm = join(sym("quote"), join(psm, null));
+      }
+
+      result = join(psm, result);
+    }
+
+    return result;
   }
 
   return sm;
@@ -140,6 +149,6 @@ parse(
 );
 */
 
-parse("(id 2.x 3.x)", gotExp);
+parse("a!b.c", gotExp);
 
 //parse("((fn (a (b c) d e) (+ a (+ b (+ c (+ d e))))) 1 '(2 3) 4 5)", gotExp);
