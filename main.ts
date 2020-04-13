@@ -78,7 +78,7 @@ function expandSymbol(sm: symbol): BelT {
     return join(sym(parts[0]), join(q, null));
   }
 
-  return s;
+  return sm;
 }
 
 function expand(exp: BelT): BelT {
@@ -105,13 +105,11 @@ function expand(exp: BelT): BelT {
         continue;
       }
 
-      /*
-      let pe: Pair = null;
-
       while (p !== null) {
-        pe = join();
+        xar(p, expand(car(p)));
+        p = cdr(p) as Pair;
+        // improper?
       }
-      */
     } else {
       if (symbol(exp)) {
         exp = expandSymbol(exp as symbol);
@@ -142,6 +140,6 @@ parse(
 );
 */
 
-parse("c|isa!cont", gotExp);
+parse("(id 2.x 3.x)", gotExp);
 
 //parse("((fn (a (b c) d e) (+ a (+ b (+ c (+ d e))))) 1 '(2 3) 4 5)", gotExp);

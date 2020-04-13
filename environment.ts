@@ -81,6 +81,7 @@ export function extendEnv(
   if (pair(names) && pair(values)) {
     let n: BelT = car(names as Pair);
     let v: BelT = car(values as Pair);
+
     let rest: VariableEnv = extendEnv(
       env,
       cdr(names as Pair),
