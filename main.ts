@@ -69,6 +69,13 @@ function expandSymbol(sm: symbol): BelT {
 
   if (s.indexOf(".") > -1 || s.indexOf("!") > -1) {
     // check first char
+    let upon: boolean = false;
+    let bang: boolean = s[0] === "!";
+
+    if (s[0] === "." || bang) {
+      upon = true;
+      s = s.substring(1);
+    }
 
     const splitters = s.split("").filter(s => s === "." || s === "!");
     const parts: string[] = s.split(/[!\.]/);
@@ -84,7 +91,16 @@ function expandSymbol(sm: symbol): BelT {
       result = join(psm, result);
     }
 
-    return result;
+    if (upon) {
+      if (bang) {
+        result = join(sym("quote"), result);
+        return join(sym("upon"), join(result, null));
+      } else {
+        return join(sym("upon"), result);
+      }
+    } else {
+      return result;
+    }
   }
 
   return sm;
