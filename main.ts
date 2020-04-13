@@ -68,7 +68,6 @@ function expandSymbol(sm: symbol): BelT {
   }
 
   if (s.indexOf(".") > -1 || s.indexOf("!") > -1) {
-    // check first char
     let upon: boolean = false;
     let bang: boolean = s[0] === "!";
 
@@ -81,10 +80,10 @@ function expandSymbol(sm: symbol): BelT {
     const parts: string[] = s.split(/[!\.]/);
     let result: Pair = null;
 
-    for (let i: number = parts.length - 1, j: number = -1; i >= 0; i--, j++) {
+    for (let i: number = parts.length - 1; i >= 0; i--) {
       let psm: BelT = sym(parts[i]);
 
-      if (j > -1 && splitters[j] === "!") {
+      if (i > 0 && splitters[i - 1] === "!") {
         psm = join(sym("quote"), join(psm, null));
       }
 
@@ -101,6 +100,29 @@ function expandSymbol(sm: symbol): BelT {
     } else {
       return result;
     }
+  }
+
+  // (t x ((quote (compose (compose no f) g)) a))
+  // (t x ((compose (compose no f) g) (quote a)))
+  // (t x ((compose (compose no f) g) (quote a)))
+
+  if (s.indexOf(":") > -1) {
+    const parts: string[] = s.split(":");
+    let result: Pair = null;
+
+    for (let i: number = parts.length - 1; i >= 0; i--) {
+      let psm: BelT = sym(parts[i]);
+      result = join(psm, result);
+    }
+
+    return join(sym("compose"), result);
+  }
+
+  if (s[0] === "~") {
+    return join(
+      sym("compose"),
+      join(sym("no"), join(sym(s.substring(1)), null))
+    );
   }
 
   return sm;
@@ -165,6 +187,6 @@ parse(
 );
 */
 
-parse("a!b.c", gotExp);
+parse("x|~f:g!a", gotExp);
 
 //parse("((fn (a (b c) d e) (+ a (+ b (+ c (+ d e))))) 1 '(2 3) 4 5)", gotExp);
