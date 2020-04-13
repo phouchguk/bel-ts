@@ -4,6 +4,7 @@ import { car, cdr, join } from "./pair";
 
 let send: null | ExpressionHandler = null;
 const token: string[] = [];
+const nrRe: RegExp = /^-?[0-9][0-9,\.]+$/;
 
 export function parse(s: string, callback: ExpressionHandler): void {
   send = callback;
@@ -196,9 +197,15 @@ function parseToken(token: string): void {
   // might be quoted, so BelT not an Atom
   let atom: BelT = null;
 
-  const nr: number = parseFloat(token);
+  if (nrRe.test(token)) {
+    const nr: number = parseFloat(token);
 
-  if (isNaN(nr)) {
+    if (isNaN(nr)) {
+      throw new Error("unrecignised number: " + token);
+    }
+
+    atom = nr;
+  } else {
     if (token.startsWith('"')) {
       atom = token
         .substring(1, token.length - 1)
@@ -213,8 +220,6 @@ function parseToken(token: string): void {
         atom = sym(token);
       }
     }
-  } else {
-    atom = nr;
   }
 
   if (quoteNext.length > 0) {
