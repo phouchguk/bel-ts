@@ -1,6 +1,6 @@
-import { BelT } from "./type";
-import { nom, sym } from "./sym";
-import { car, cdr, join, xar, xdr } from "./pair";
+import { BelT, Pair, number } from "./type";
+import { nom, sym, symbol } from "./sym";
+import { car, cdr, join, pair, xar, xdr } from "./pair";
 import { parse } from "./parse";
 import { print } from "./print";
 import { BaseCont } from "./continuation";
@@ -44,7 +44,89 @@ prim("coin", () => (Math.random() * 2 > 1 ? t : null), 0);
 prim("display", (s: string) => console.log(s), 1);
 env = new VariableEnv(env, sym("ccc"), ccc);
 
+function equal(e1: BelT, e2: BelT): boolean {
+  if (pair(e1)) {
+    if (!pair(e2)) {
+      return false;
+    }
+
+    let p1: Pair = e1 as Pair;
+    let p2: Pair = e2 as Pair;
+
+    return equal(car(p1), car(p2)) && equal(cdr(p1), cdr(p2));
+  } else {
+    return e1 === e2;
+  }
+}
+
+function expandSymbol(sm: symbol): BelT {
+  let s: string = nom(sm);
+
+  if (s.indexOf("|") > -1) {
+    let parts: string[] = s.split("|");
+    return join(t, join(sym(parts[0]), join(sym(parts[1]), null)));
+  }
+
+  if (s.indexOf(".") > -1) {
+    let parts: string[] = s.split(".");
+    return join(sym(parts[0]), join(sym(parts[1]), null));
+  }
+
+  if (s.indexOf("!") > -1) {
+    let parts: string[] = s.split("!");
+    let q: Pair = join(sym("quote"), join(sym(parts[1]), null));
+    return join(sym(parts[0]), join(q, null));
+  }
+
+  return s;
+}
+
+function expand(exp: BelT): BelT {
+  let lastExp: BelT = null;
+
+  while (true) {
+    /*
+    pr("e", exp);
+    pr("last e", lastExp);
+    */
+
+    if (equal(exp, lastExp)) {
+      // finished expanding
+      return exp;
+    }
+
+    lastExp = exp;
+
+    if (pair(exp)) {
+      let p: Pair = exp as Pair;
+
+      if (number(car(p))) {
+        exp = join(sym("nth"), p);
+        continue;
+      }
+
+      /*
+      let pe: Pair = null;
+
+      while (p !== null) {
+        pe = join();
+      }
+      */
+    } else {
+      if (symbol(exp)) {
+        exp = expandSymbol(exp as symbol);
+        continue;
+      }
+    }
+  }
+}
+
 function gotExp(exp: BelT): void {
+  gotExpansion(null);
+  gotResult(expand(exp));
+}
+
+function gotExpansion(exp: BelT): void {
   pr("expression", exp);
   evaluate(exp, env, baseCont);
 }
@@ -60,4 +142,6 @@ parse(
 );
 */
 
-parse("((fn (a (b c) d e) (+ a (+ b (+ c (+ d e))))) 1 '(2 3) 4 5)", gotExp);
+parse("c|isa!cont", gotExp);
+
+//parse("((fn (a (b c) d e) (+ a (+ b (+ c (+ d e))))) 1 '(2 3) 4 5)", gotExp);

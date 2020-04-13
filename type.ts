@@ -11,6 +11,14 @@ export class Cell {
   }
 }
 
+export function number(x: BelT): boolean {
+  return typeof x === "number";
+}
+
+export function string(x: BelT): boolean {
+  return typeof x === "string";
+}
+
 export type ExpressionHandler = (x: BelT) => void;
 export type Atom = number | string | symbol | Value | Continuation | null;
 export type Pair = Cell | null;

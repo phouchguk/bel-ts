@@ -1,4 +1,4 @@
-import { BelT, Pair } from "./type";
+import { BelT, Pair, number, string } from "./type";
 import { atom, car, cdr, pair } from "./pair";
 import { sym, symbol, t } from "./sym";
 import { Continuation } from "./continuation";
@@ -23,14 +23,6 @@ function cadddr(e: Pair): BelT {
 
 function cddr(e: Pair): BelT {
   return cdr(cdr(e) as Pair);
-}
-
-function number(x: BelT): boolean {
-  return typeof x === "number";
-}
-
-function string(x: BelT): boolean {
-  return typeof x === "string";
 }
 
 function taggedList(x: Pair, tag: symbol): boolean {
