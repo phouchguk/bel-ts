@@ -1,3 +1,5 @@
+import { createReadStream } from "fs"
+
 import { BelT, Pair, number } from "./type";
 import { nom, sym, symbol } from "./sym";
 import { car, cdr, join, pair, xar, xdr } from "./pair";
@@ -22,7 +24,7 @@ prim("+", (a: number, b: number) => a + b, 2);
 prim("-", (a: number, b: number) => a - b, 2);
 prim("*", (a: number, b: number) => a * b, 2);
 prim("/", (a: number, b: number) => a / b, 2);
-prim("id", (a: BelT, b: BelT) => a === b, 2);
+prim("id", (a: BelT, b: BelT) => a === b ? t : null, 2);
 prim("join", join, 2);
 prim("car", car, 1);
 prim("cdr", cdr, 1);
@@ -179,6 +181,8 @@ function gotResult(result: BelT): void {
   pr("result", result);
 }
 
+const readStream = createReadStream("prelude.bel", "utf8");
+readStream.on("data", function(chunk: string | Buffer) { parse(chunk as string, gotExp); }).on("end", function() {
 /*
 parse(
   "(set double (macro (x) (join '* (join x (join x nil))))) (double 7)",
@@ -187,10 +191,11 @@ parse(
 */
 
 parse(
-  '(set double (macro (x) (join \'* (join x (join x nil))))) (set x 30) 1 2 (display "done") (iff (coin) ((fn (x) x) (+ x 12)) (ccc (fn (return) (iff (coin) (return (- 100 1)) 3)))) (double 7) (double 9)',
+  '(set double (macro (x) (join \'* (join x (join x nil))))) (set x 30) 1 2 (display "done") (iff (coin) ((fn (x) x) (+ x 12)) (ccc (fn (return) (iff (coin) (return (- 100 1)) 3)))) (double 7) (no (double 9)) (no nil) (no t)',
   gotExp
 );
 
 //parse("x|~f:g!a", gotExp);
 
 //parse("((fn (a (b c) d e) (+ a (+ b (+ c (+ d e))))) 1 '(2 3) 4 5)", gotExp);
+})
