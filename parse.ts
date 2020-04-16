@@ -4,7 +4,7 @@ import { car, cdr, join } from "./pair";
 
 let send: null | ExpressionHandler = null;
 const token: string[] = [];
-const nrRe: RegExp = /^-?[0-9][0-9,\.]+$/;
+const nrRe: RegExp = /^-?[0-9][0-9\.]*$/;
 
 export function parse(s: string, callback: ExpressionHandler): void {
   send = callback;

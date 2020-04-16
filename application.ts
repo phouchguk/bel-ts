@@ -2,7 +2,7 @@ import { BelT, Pair } from "./type";
 import { car, cdr, join, pair } from "./pair";
 import { Continuation } from "./continuation";
 import { Environment } from "./environment";
-import { Value } from "./value";
+import { Macro, Value, macro } from "./value";
 import { evaluate } from "./bel";
 
 class ApplyCont extends Continuation {
@@ -41,9 +41,24 @@ class ArgumentCont extends Continuation {
   }
 }
 
-class EvFnCont extends Continuation {
-  args: BelT;
+// evaluates a macro after expansion
+class MacroCont extends Continuation {
   r: Environment;
+
+  constructor(k: Continuation, r: Environment) {
+    super(k);
+
+    this.r = r;
+  }
+
+  resume(expanded: BelT): void {
+    evaluate(expanded, this.r, this.k as Continuation);
+  }
+}
+
+class EvFnCont extends Continuation {
+  r: Environment;
+  args: BelT;
 
   constructor(k: Continuation, args: BelT, r: Environment) {
     super(k);
@@ -52,12 +67,22 @@ class EvFnCont extends Continuation {
     this.r = r;
   }
 
-  resume(f: BelT): void {
-    evaluateArguments(
-      this.args,
-      this.r,
-      new ApplyCont(this.k as Continuation, f as Value, this.r)
-    );
+  resume(op: BelT): void {
+    if (macro(op)) {
+      let m: Macro = op as Macro;
+      // evaulate macro with unevaluated args, pass to MacroCont which evaluates the expansion
+      m.invoke(
+        this.args,
+        this.r,
+        new MacroCont(this.k as Continuation, this.r)
+      );
+    } else {
+      evaluateArguments(
+        this.args,
+        this.r,
+        new ApplyCont(this.k as Continuation, op as Value, this.r)
+      );
+    }
   }
 }
 

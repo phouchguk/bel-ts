@@ -167,12 +167,12 @@ function expand(exp: BelT): BelT {
 }
 
 function gotExp(exp: BelT): void {
-  gotExpansion(null);
-  gotResult(expand(exp));
+  pr("expression", exp);
+  gotExpansion(expand(exp));
 }
 
 function gotExpansion(exp: BelT): void {
-  pr("expression", exp);
+  pr("expansion", exp);
   evaluate(exp, env, baseCont);
 }
 
@@ -180,13 +180,11 @@ function gotResult(result: BelT): void {
   pr("result", result);
 }
 
-/*
 parse(
   '(do (set x 30) 1 2 (display "done") (iff (coin) ((fn (x) x) (+ x 12)) (ccc (fn (return) (iff (coin) (return (- 100 1)) 3)))))',
   gotExp
 );
-*/
 
-parse("x|~f:g!a", gotExp);
+//parse("x|~f:g!a", gotExp);
 
 //parse("((fn (a (b c) d e) (+ a (+ b (+ c (+ d e))))) 1 '(2 3) 4 5)", gotExp);

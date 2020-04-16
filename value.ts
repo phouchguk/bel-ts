@@ -31,6 +31,25 @@ export class Fn extends Value {
   }
 }
 
+export class Macro extends Value {
+  variables: BelT;
+  body: BelT;
+  env: Environment;
+
+  constructor(variables: BelT, body: BelT, env: Environment) {
+    super();
+
+    this.variables = variables;
+    this.body = body;
+    this.env = env;
+  }
+
+  invoke(vx: BelT, _: Environment, k: Continuation): void {
+    let env = extendEnv(this.env as VariableEnv, this.variables, vx);
+    evaluateBegin(this.body, env, k);
+  }
+}
+
 export class Primitive extends Value {
   name: symbol;
   address: Invokeable;
@@ -85,4 +104,8 @@ export function jsPrimitive(
 
 export function fn(x: BelT): boolean {
   return x instanceof Fn;
+}
+
+export function macro(x: BelT): boolean {
+  return x instanceof Macro;
 }
