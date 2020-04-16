@@ -16,5 +16,5 @@
     "newLine": "LF",
     "outDir": "js"
   },
-  "files": ["./main.ts"]
+  "files": ["./main.ts", "./web.ts"]
 }

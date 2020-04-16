@@ -1,20 +1,30 @@
-var display = document.getElementById("display");
+import { bel } from "./boot"
 
-var repl = document.getElementById("repl");
+const display: HTMLElement = document.getElementById("display") as HTMLElement;
+
+const repl: HTMLInputElement = document.getElementById("repl") as HTMLInputElement;
 repl.focus();
 
-var idx = -1;
+let idx: number = -1;
 
-var cmds = [];
+let cmds: string[] = [];
 
-function say(c, s) {
+function say(c: string, s:string): void {
   var p = document.createElement("p");
   p.className = c;
   p.innerText = s;
   display.appendChild(p);
 }
 
-function read(e) {
+function gotExp(exp: string): void {
+  say("input", exp);
+}
+
+function gotResult(result: string): void {
+  say("output", result);
+}
+
+function read(e: KeyboardEvent): void {
   if (cmds.length > 0) {
     if (e.keyCode === 38) {
       // previous command
@@ -54,8 +64,8 @@ function read(e) {
 
 
   if (e.keyCode === 13) {
-    var val = e.target.value.trim();
-    e.target.value = "";
+    const val: string = repl.value.trim();
+    repl.value = "";
 
     if (val === "") {
       return;
@@ -71,8 +81,7 @@ function read(e) {
     if (val === "(cls)") {
       display.innerText = "";
     } else {
-      say("input", val);
-      say("output", "???");
+      bel(val, gotExp, gotResult);
     }
   }
 }
