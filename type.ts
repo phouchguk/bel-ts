@@ -19,6 +19,8 @@ export function string(x: BelT): boolean {
   return typeof x === "string";
 }
 
+
+export type StringHandler = (x: string) => void;
 export type ExpressionHandler = (x: BelT) => void;
 export type Atom = number | string | symbol | Value | Continuation | null;
 export type Pair = Cell | null;

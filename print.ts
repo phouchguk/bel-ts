@@ -1,4 +1,4 @@
-import { BelT, Pair } from "./type";
+import { BelT, Pair, StringHandler } from "./type";
 import { nom, symbol } from "./sym";
 import { atom, car, cdr, pair } from "./pair";
 import { fn, macro } from "./value";
@@ -59,11 +59,17 @@ export function print(exp: BelT, output: string[]) {
 }
 
 export function pr(got: string, x: BelT): void {
+  prs(x, function(s) {
+    console.log(`${got}:`, s);
+  });
+}
+
+export function prs(x: BelT, f: StringHandler): void {
   let output: string[] = [];
 
   print(x, output);
 
   if (output.length > 0) {
-    console.log(`${got}:`, output.join(""));
+    f(output.join(""));
   }
 }
