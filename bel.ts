@@ -3,7 +3,7 @@ import { atom, car, cdr, pair } from "./pair";
 import { sym, symbol, t } from "./sym";
 import { Continuation } from "./continuation";
 import { Environment } from "./environment";
-import { Fn } from "./value";
+import { Fn, Macro } from "./value";
 import { evaluateIf } from "./iff";
 import { evaluateBegin } from "./begin";
 import { evaluateSet } from "./set";
@@ -37,6 +37,7 @@ const iff: symbol = sym("iff");
 const begin: symbol = sym("do");
 const set: symbol = sym("set");
 const lambda: symbol = sym("fn");
+const macro: symbol = sym("macro");
 
 function selfEvaluating(x: BelT): boolean {
   return (
@@ -63,6 +64,15 @@ function evaluateLambda(
   k: Continuation
 ): void {
   k.resume(new Fn(nx, ex, r));
+}
+
+function evaluateMacro(
+  nx: BelT,
+  ex: BelT,
+  r: Environment,
+  k: Continuation
+): void {
+  k.resume(new Macro(nx, ex, r));
 }
 
 export function evaluate(e: BelT, r: Environment, k: Continuation): void {
@@ -97,6 +107,10 @@ export function evaluate(e: BelT, r: Environment, k: Continuation): void {
 
     case lambda:
       evaluateLambda(cadr(p), cddr(p), r, k);
+      break;
+
+    case macro:
+      evaluateMacro(cadr(p), cddr(p), r, k);
       break;
 
     default:

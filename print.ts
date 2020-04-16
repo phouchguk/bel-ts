@@ -1,7 +1,7 @@
 import { BelT, Pair } from "./type";
 import { nom, symbol } from "./sym";
 import { atom, car, cdr, pair } from "./pair";
-import { fn } from "./value";
+import { fn, macro } from "./value";
 
 export function print(exp: BelT, output: string[]) {
   if (pair(exp)) {
@@ -35,6 +35,8 @@ export function print(exp: BelT, output: string[]) {
     output.push(nom(exp as symbol));
   } else if (fn(exp)) {
     output.push("<fn>");
+  } else if (macro(exp)) {
+    output.push("<macro>");
     /*
   } else if (prim(exp)) {
     output.push(`<prim:${nom(exp.name)}>`);
@@ -53,5 +55,15 @@ export function print(exp: BelT, output: string[]) {
     );
   } else {
     output.push((exp as number) + "");
+  }
+}
+
+export function pr(got: string, x: BelT): void {
+  let output: string[] = [];
+
+  print(x, output);
+
+  if (output.length > 0) {
+    console.log(`${got}:`, output.join(""));
   }
 }

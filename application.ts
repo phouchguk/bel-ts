@@ -4,6 +4,7 @@ import { Continuation } from "./continuation";
 import { Environment } from "./environment";
 import { Macro, Value, macro } from "./value";
 import { evaluate } from "./bel";
+import { pr } from "./print";
 
 class ApplyCont extends Continuation {
   f: Value;
@@ -52,6 +53,7 @@ class MacroCont extends Continuation {
   }
 
   resume(expanded: BelT): void {
+    pr("macro", expanded);
     evaluate(expanded, this.r, this.k as Continuation);
   }
 }
@@ -70,6 +72,7 @@ class EvFnCont extends Continuation {
   resume(op: BelT): void {
     if (macro(op)) {
       let m: Macro = op as Macro;
+
       // evaulate macro with unevaluated args, pass to MacroCont which evaluates the expansion
       m.invoke(
         this.args,
