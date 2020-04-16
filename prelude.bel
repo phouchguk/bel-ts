@@ -1,0 +1,1 @@
+(set no (fn (x) (id x nil)))
