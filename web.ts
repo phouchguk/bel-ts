@@ -1,15 +1,17 @@
-import { bel } from "./boot"
+import { bel } from "./boot";
 
 const display: HTMLElement = document.getElementById("display") as HTMLElement;
 
-const repl: HTMLInputElement = document.getElementById("repl") as HTMLInputElement;
+const repl: HTMLInputElement = document.getElementById(
+  "repl"
+) as HTMLInputElement;
 repl.focus();
 
 let idx: number = -1;
 
 let cmds: string[] = [];
 
-function say(c: string, s:string): void {
+function say(c: string, s: string): void {
   var p = document.createElement("p");
   p.className = c;
   p.innerText = s;
@@ -47,7 +49,7 @@ function read(e: KeyboardEvent): void {
       // next command
 
       if (idx === -1) {
-        idx = 0
+        idx = 0;
       } else {
         idx++;
       }
@@ -61,7 +63,6 @@ function read(e: KeyboardEvent): void {
       return;
     }
   }
-
 
   if (e.keyCode === 13) {
     const val: string = repl.value.trim();

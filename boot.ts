@@ -22,7 +22,7 @@ prim("+", (a: number, b: number) => a + b, 2);
 prim("-", (a: number, b: number) => a - b, 2);
 prim("*", (a: number, b: number) => a * b, 2);
 prim("/", (a: number, b: number) => a / b, 2);
-prim("id", (a: BelT, b: BelT) => a === b ? t : null, 2);
+prim("id", (a: BelT, b: BelT) => (a === b ? t : null), 2);
 prim("join", join, 2);
 prim("car", car, 1);
 prim("cdr", cdr, 1);
@@ -170,7 +170,7 @@ let resOut: StringHandler | null = null;
 
 function gotExp(exp: BelT): void {
   if (expOut !== null) {
-     prs(exp, expOut as StringHandler);
+    prs(exp, expOut as StringHandler);
   }
 
   gotExpansion(expand(exp));
