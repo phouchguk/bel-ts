@@ -217,7 +217,7 @@ prim("+", (a, b) => a + b, 2);
 prim("-", (a, b) => a - b, 2);
 prim("*", (a, b) => a * b, 2);
 prim("/", (a, b) => a / b, 2);
-prim("id", (a, b) => a === b ? t : null, 2);
+prim("id", (a, b) => (a === b ? t : null), 2);
 prim("join", pair_1.join, 2);
 prim("car", pair_1.car, 1);
 prim("cdr", pair_1.cdr, 1);
@@ -320,6 +320,7 @@ function expand(exp) {
         }
     }
 }
+let errOut = null;
 let expOut = null;
 let resOut = null;
 function gotExp(exp) {
@@ -329,14 +330,22 @@ function gotExp(exp) {
     gotExpansion(expand(exp));
 }
 function gotExpansion(exp) {
-    bel_1.evaluate(exp, env, baseCont);
+    try {
+        bel_1.evaluate(exp, env, baseCont);
+    }
+    catch (e) {
+        if (errOut !== null) {
+            errOut(e);
+        }
+    }
 }
 function gotResult(result) {
     if (resOut !== null) {
-        print_1.prs(result, resOut);
+        resOut(result);
     }
 }
-function bel(s, exp, res) {
+function bel(s, err, exp, res) {
+    errOut = err;
     expOut = exp;
     resOut = res;
     parse_1.parse(s, gotExp);
@@ -755,6 +764,59 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const sym_1 = require("./sym");
 const pair_1 = require("./pair");
 const value_1 = require("./value");
+function wrap(cls, val) {
+    return `<span class="${cls}">${val}</span>`;
+}
+function prw(exp, output) {
+    if (pair_1.pair(exp)) {
+        output.push(wrap("par", "("));
+        let xs = exp;
+        let first = true;
+        while (xs !== null) {
+            if (!first) {
+                output.push(" ");
+            }
+            if (pair_1.atom(xs)) {
+                output.push(". ");
+                prw(xs, output);
+                break;
+            }
+            prw(pair_1.car(xs), output);
+            xs = pair_1.cdr(xs);
+            first = false;
+        }
+        output.push(wrap("par", ")"));
+        return;
+    }
+    if (sym_1.symbol(exp)) {
+        output.push(wrap("sym", sym_1.nom(exp)));
+    }
+    else if (value_1.fn(exp)) {
+        output.push(wrap("unp", "&lt;fn&gt;"));
+    }
+    else if (value_1.macro(exp)) {
+        output.push(wrap("unp", "&lt;macro&gt;"));
+    }
+    else if (value_1.prim(exp)) {
+        output.push(wrap("unp", `&lt;prim:${sym_1.nom(exp.name)}&gt;`));
+    }
+    else if (exp === null) {
+        output.push(wrap("sym", "nil"));
+    }
+    else if (typeof exp === "string") {
+        output.push(wrap("str", '"' +
+            exp
+                .replace(/"/g, '\\"')
+                .replace(/\n/g, "\\n")
+                .replace(/\t/g, "\\t")
+                .replace(/\r/g, "\\r") +
+            '"'));
+    }
+    else {
+        output.push(wrap("num", exp + ""));
+    }
+}
+exports.prw = prw;
 function print(exp, output) {
     if (pair_1.pair(exp)) {
         output.push("(");
@@ -784,6 +846,9 @@ function print(exp, output) {
     }
     else if (value_1.macro(exp)) {
         output.push("<macro>");
+    }
+    else if (value_1.prim(exp)) {
+        output.push(`<prim:${sym_1.nom(exp.name)}>`);
     }
     else if (exp === null) {
         output.push("nil");
@@ -951,11 +1016,16 @@ function macro(x) {
     return x instanceof Macro;
 }
 exports.macro = macro;
+function prim(x) {
+    return x instanceof Primitive;
+}
+exports.prim = prim;
 
 },{"./begin":2,"./environment":6,"./pair":8,"./sym":12}],15:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const boot_1 = require("./boot");
+const print_1 = require("./print");
 const display = document.getElementById("display");
 const repl = document.getElementById("repl");
 repl.focus();
@@ -967,11 +1037,19 @@ function say(c, s) {
     p.innerText = s;
     display.appendChild(p);
 }
+function gotErr(err) {
+    say("error", err);
+}
 function gotExp(exp) {
     say("input", exp);
 }
-function gotResult(result) {
-    say("output", result);
+function gotResult(exp) {
+    let output = [];
+    print_1.prw(exp, output);
+    var p = document.createElement("p");
+    p.className = "output";
+    p.innerHTML = output.join("");
+    display.appendChild(p);
 }
 function read(e) {
     if (cmds.length > 0) {
@@ -1017,10 +1095,10 @@ function read(e) {
             display.innerText = "";
         }
         else {
-            boot_1.bel(val, gotExp, gotResult);
+            boot_1.bel(val, gotErr, gotExp, gotResult);
         }
     }
 }
 repl.addEventListener("keyup", read, false);
 
-},{"./boot":4}]},{},[15]);
+},{"./boot":4,"./print":10}]},{},[15]);

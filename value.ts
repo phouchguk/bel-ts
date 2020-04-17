@@ -109,3 +109,7 @@ export function fn(x: BelT): boolean {
 export function macro(x: BelT): boolean {
   return x instanceof Macro;
 }
+
+export function prim(x: BelT): boolean {
+  return x instanceof Primitive;
+}

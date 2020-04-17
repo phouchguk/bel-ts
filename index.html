@@ -1,32 +1,59 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
 
     <style>
       input {
-          border-style: none;
+        border-style: none;
+        width: 95%;
       }
 
-      input, p {
-          font-family: monospace;
-          font-size: 8pt;
-          margin: 0;
-          padding: 0;
+      input,
+      p {
+        font-family: monospace;
+        font-size: 8pt;
+        margin: 0;
+        padding: 0;
+      }
+
+      p.error {
+        color: #d00;
       }
 
       p.input {
-          color: #999;
+        color: #999;
       }
 
+      p.error,
       p.output {
-          margin-bottom: 5px;
+        margin-bottom: 5px;
+      }
+
+      span.num {
+        color: #4cdef5;
+      }
+
+      span.par {
+        color: #555;
+      }
+
+      span.str {
+        color: #ff5992;
+      }
+
+      span.sym {
+        color: #a4d555;
+      }
+
+      span.unp {
+        color: #841983;
       }
     </style>
   </head>
   <body>
     <div id="display"></div>
-    <p>bel> <input id="repl" type="text"></p>
+    <p>bel> <input id="repl" type="text" /></p>
     <script src="app.js"></script>
   </body>
 </html>

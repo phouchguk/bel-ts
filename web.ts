@@ -1,4 +1,6 @@
 import { bel } from "./boot";
+import { prw } from "./print";
+import { BelT } from "./type";
 
 const display: HTMLElement = document.getElementById("display") as HTMLElement;
 
@@ -18,12 +20,23 @@ function say(c: string, s: string): void {
   display.appendChild(p);
 }
 
+function gotErr(err: string): void {
+  say("error", err);
+}
+
 function gotExp(exp: string): void {
   say("input", exp);
 }
 
-function gotResult(result: string): void {
-  say("output", result);
+function gotResult(exp: BelT): void {
+  let output: string[] = [];
+
+  prw(exp, output);
+
+  var p = document.createElement("p");
+  p.className = "output";
+  p.innerHTML = output.join("");
+  display.appendChild(p);
 }
 
 function read(e: KeyboardEvent): void {
@@ -82,7 +95,7 @@ function read(e: KeyboardEvent): void {
     if (val === "(cls)") {
       display.innerText = "";
     } else {
-      bel(val, gotExp, gotResult);
+      bel(val, gotErr, gotExp, gotResult);
     }
   }
 }

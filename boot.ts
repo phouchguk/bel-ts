@@ -1,4 +1,4 @@
-import { BelT, Pair, StringHandler, number } from "./type";
+import { BelT, ExpressionHandler, Pair, StringHandler, number } from "./type";
 import { nom, sym, symbol } from "./sym";
 import { car, cdr, join, pair, xar, xdr } from "./pair";
 import { parse } from "./parse";
@@ -165,8 +165,9 @@ function expand(exp: BelT): BelT {
   }
 }
 
+let errOut: StringHandler | null = null;
 let expOut: StringHandler | null = null;
-let resOut: StringHandler | null = null;
+let resOut: ExpressionHandler | null = null;
 
 function gotExp(exp: BelT): void {
   if (expOut !== null) {
@@ -178,16 +179,28 @@ function gotExp(exp: BelT): void {
 
 function gotExpansion(exp: BelT): void {
   //pr("expansion", exp);
-  evaluate(exp, env, baseCont);
+  try {
+    evaluate(exp, env, baseCont);
+  } catch (e) {
+    if (errOut !== null) {
+      errOut(e);
+    }
+  }
 }
 
 function gotResult(result: BelT): void {
   if (resOut !== null) {
-    prs(result, resOut as StringHandler);
+    resOut(result);
   }
 }
 
-export function bel(s: string, exp: StringHandler, res: StringHandler) {
+export function bel(
+  s: string,
+  err: StringHandler,
+  exp: StringHandler,
+  res: ExpressionHandler
+) {
+  errOut = err;
   expOut = exp;
   resOut = res;
 
