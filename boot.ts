@@ -1,4 +1,4 @@
-import { BelT, ExpressionHandler, Pair, StringHandler, number } from "./type";
+import { BelT, ExpressionHandler, Pair, StringHandler } from "./type";
 import { nom, sym, symbol } from "./sym";
 import { car, cdr, join, pair, xar, xdr } from "./pair";
 import { parse } from "./parse";
@@ -146,10 +146,12 @@ function expand(exp: BelT): BelT {
     if (pair(exp)) {
       let p: Pair = exp as Pair;
 
+      /*
       if (number(car(p))) {
         exp = join(sym("nth"), p);
         continue;
       }
+      */
 
       while (p !== null) {
         xar(p, expand(car(p)));

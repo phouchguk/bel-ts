@@ -39,6 +39,22 @@ export function atom(x: BelT): boolean {
   return !pair(x);
 }
 
+export function cadr(e: Pair): BelT {
+  return car(cdr(e) as Pair);
+}
+
+export function caddr(e: Pair): BelT {
+  return car(cdr(cdr(e) as Pair) as Pair);
+}
+
+export function cadddr(e: Pair): BelT {
+  return car(cdr(cdr(cdr(e) as Pair) as Pair) as Pair);
+}
+
+export function cddr(e: Pair): BelT {
+  return cdr(cdr(e) as Pair);
+}
+
 export function toArray(xs: Pair): BelT[] {
   let arr: BelT[] = [];
   let i: number = 0;

@@ -1,4 +1,5 @@
 import { BelT, Pair } from "./type";
+import { sym } from "./sym";
 import { car, cdr, join, pair } from "./pair";
 import { Continuation } from "./continuation";
 import { Environment } from "./environment";
@@ -6,11 +7,40 @@ import { Macro, Value, macro } from "./value";
 import { evaluate } from "./bel";
 import { pr } from "./print";
 
+function applyArgs(args: Pair): Pair {
+  // arrange args
+  let rev: Pair = null;
+
+  while (true) {
+    if (cdr(args) === null) {
+      // last arg, must be a pair
+      if (!pair(car(args))) {
+        throw new Error("last arg to apply must be a pair");
+      }
+
+      args = car(args) as Pair;
+
+      while (rev !== null) {
+        args = join(car(rev), args);
+        rev = cdr(rev) as Pair;
+      }
+
+      break;
+    } else {
+      // store the leading args to join onto final arg
+      rev = join(car(args), rev);
+      args = cdr(args) as Pair;
+    }
+  }
+
+  return args;
+}
+
 class ApplyCont extends Continuation {
-  f: Value;
+  f: Value | symbol;
   r: Environment;
 
-  constructor(k: Continuation, f: Value, r: Environment) {
+  constructor(k: Continuation, f: Value | symbol, r: Environment) {
     super(k);
 
     this.f = f;
@@ -18,7 +48,12 @@ class ApplyCont extends Continuation {
   }
 
   resume(args: BelT): void {
-    this.f.invoke(args, this.r, this.k as Continuation);
+    if (this.f === sym("apply")) {
+       this.f = car(args as Pair) as Value;
+       args = applyArgs(cdr(args as Pair) as Pair);
+    }
+
+    (this.f as Value).invoke(args, this.r, this.k as Continuation);
   }
 }
 

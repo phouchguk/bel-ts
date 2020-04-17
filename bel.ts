@@ -1,5 +1,5 @@
 import { BelT, Pair, number, string } from "./type";
-import { atom, car, cdr, pair } from "./pair";
+import { atom, car, cdr, cadr, caddr, cadddr, cddr, pair } from "./pair";
 import { sym, symbol, t } from "./sym";
 import { Continuation } from "./continuation";
 import { Environment } from "./environment";
@@ -8,22 +8,6 @@ import { evaluateIf } from "./iff";
 import { evaluateBegin } from "./begin";
 import { evaluateSet } from "./set";
 import { evaluateApplication } from "./application";
-
-function cadr(e: Pair): BelT {
-  return car(cdr(e) as Pair);
-}
-
-function caddr(e: Pair): BelT {
-  return car(cdr(cdr(e) as Pair) as Pair);
-}
-
-function cadddr(e: Pair): BelT {
-  return car(cdr(cdr(cdr(e) as Pair) as Pair) as Pair);
-}
-
-function cddr(e: Pair): BelT {
-  return cdr(cdr(e) as Pair);
-}
 
 function taggedList(x: Pair, tag: symbol): boolean {
   return pair(x) && car(x) === tag;

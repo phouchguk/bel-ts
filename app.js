@@ -1,11 +1,33 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const sym_1 = require("./sym");
 const pair_1 = require("./pair");
 const continuation_1 = require("./continuation");
 const value_1 = require("./value");
 const bel_1 = require("./bel");
 const print_1 = require("./print");
+function applyArgs(args) {
+    let rev = null;
+    while (true) {
+        if (pair_1.cdr(args) === null) {
+            if (!pair_1.pair(pair_1.car(args))) {
+                throw new Error("last arg to apply must be a pair");
+            }
+            args = pair_1.car(args);
+            while (rev !== null) {
+                args = pair_1.join(pair_1.car(rev), args);
+                rev = pair_1.cdr(rev);
+            }
+            break;
+        }
+        else {
+            rev = pair_1.join(pair_1.car(args), rev);
+            args = pair_1.cdr(args);
+        }
+    }
+    return args;
+}
 class ApplyCont extends continuation_1.Continuation {
     constructor(k, f, r) {
         super(k);
@@ -13,6 +35,10 @@ class ApplyCont extends continuation_1.Continuation {
         this.r = r;
     }
     resume(args) {
+        if (this.f === sym_1.sym("apply")) {
+            this.f = pair_1.car(args);
+            args = applyArgs(pair_1.cdr(args));
+        }
         this.f.invoke(args, this.r, this.k);
     }
 }
@@ -74,7 +100,7 @@ function evaluateApplication(op, args, r, k) {
 }
 exports.evaluateApplication = evaluateApplication;
 
-},{"./bel":3,"./continuation":5,"./pair":8,"./print":10,"./value":14}],2:[function(require,module,exports){
+},{"./bel":3,"./continuation":5,"./pair":8,"./print":10,"./sym":12,"./value":14}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const pair_1 = require("./pair");
@@ -116,18 +142,6 @@ const iff_1 = require("./iff");
 const begin_1 = require("./begin");
 const set_1 = require("./set");
 const application_1 = require("./application");
-function cadr(e) {
-    return pair_1.car(pair_1.cdr(e));
-}
-function caddr(e) {
-    return pair_1.car(pair_1.cdr(pair_1.cdr(e)));
-}
-function cadddr(e) {
-    return pair_1.car(pair_1.cdr(pair_1.cdr(pair_1.cdr(e))));
-}
-function cddr(e) {
-    return pair_1.cdr(pair_1.cdr(e));
-}
 function taggedList(x, tag) {
     return pair_1.pair(x) && pair_1.car(x) === tag;
 }
@@ -171,22 +185,22 @@ function evaluate(e, r, k) {
     let p = e;
     switch (pair_1.car(p)) {
         case quote:
-            evaluateQuote(cadr(p), r, k);
+            evaluateQuote(pair_1.cadr(p), r, k);
             break;
         case iff:
-            iff_1.evaluateIf(cadr(p), caddr(p), cadddr(p), r, k);
+            iff_1.evaluateIf(pair_1.cadr(p), pair_1.caddr(p), pair_1.cadddr(p), r, k);
             break;
         case begin:
             begin_1.evaluateBegin(pair_1.cdr(p), r, k);
             break;
         case set:
-            set_1.evaluateSet(cadr(p), caddr(p), r, k);
+            set_1.evaluateSet(pair_1.cadr(p), pair_1.caddr(p), r, k);
             break;
         case lambda:
-            evaluateLambda(cadr(p), cddr(p), r, k);
+            evaluateLambda(pair_1.cadr(p), pair_1.cddr(p), r, k);
             break;
         case macro:
-            evaluateMacro(cadr(p), cddr(p), r, k);
+            evaluateMacro(pair_1.cadr(p), pair_1.cddr(p), r, k);
             break;
         default:
             application_1.evaluateApplication(pair_1.car(p), pair_1.cdr(p), r, k);
@@ -197,7 +211,6 @@ exports.evaluate = evaluate;
 },{"./application":1,"./begin":2,"./iff":7,"./pair":8,"./set":11,"./sym":12,"./type":13,"./value":14}],4:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const type_1 = require("./type");
 const sym_1 = require("./sym");
 const pair_1 = require("./pair");
 const parse_1 = require("./parse");
@@ -303,10 +316,6 @@ function expand(exp) {
         lastExp = exp;
         if (pair_1.pair(exp)) {
             let p = exp;
-            if (type_1.number(pair_1.car(p))) {
-                exp = pair_1.join(sym_1.sym("nth"), p);
-                continue;
-            }
             while (p !== null) {
                 pair_1.xar(p, expand(pair_1.car(p)));
                 p = pair_1.cdr(p);
@@ -352,7 +361,7 @@ function bel(s, err, exp, res) {
 }
 exports.bel = bel;
 
-},{"./bel":3,"./continuation":5,"./environment":6,"./pair":8,"./parse":9,"./print":10,"./sym":12,"./type":13,"./value":14}],5:[function(require,module,exports){
+},{"./bel":3,"./continuation":5,"./environment":6,"./pair":8,"./parse":9,"./print":10,"./sym":12,"./value":14}],5:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const pair_1 = require("./pair");
@@ -519,6 +528,22 @@ function atom(x) {
     return !pair(x);
 }
 exports.atom = atom;
+function cadr(e) {
+    return car(cdr(e));
+}
+exports.cadr = cadr;
+function caddr(e) {
+    return car(cdr(cdr(e)));
+}
+exports.caddr = caddr;
+function cadddr(e) {
+    return car(cdr(cdr(cdr(e))));
+}
+exports.cadddr = cadddr;
+function cddr(e) {
+    return cdr(cdr(e));
+}
+exports.cddr = cddr;
 function toArray(xs) {
     let arr = [];
     let i = 0;
