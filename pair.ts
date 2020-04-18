@@ -51,6 +51,10 @@ export function cadddr(e: Pair): BelT {
   return car(cdr(cdr(cdr(e) as Pair) as Pair) as Pair);
 }
 
+export function cdddr(e: Pair): BelT {
+  return cdr(cdr(cdr(e) as Pair) as Pair);
+}
+
 export function cddr(e: Pair): BelT {
   return cdr(cdr(e) as Pair);
 }

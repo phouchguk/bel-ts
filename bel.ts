@@ -1,5 +1,5 @@
 import { BelT, Pair, number, string } from "./type";
-import { atom, car, cdr, cadr, caddr, cadddr, cddr, pair } from "./pair";
+import { atom, car, cdr, cadr, caddr, cdddr, cddr, pair } from "./pair";
 import { sym, symbol, t } from "./sym";
 import { Continuation } from "./continuation";
 import { Environment } from "./environment";
@@ -17,7 +17,7 @@ const apply: symbol = sym("apply");
 const o: symbol = sym("o");
 const lit: symbol = sym("lit");
 const quote: symbol = sym("quote");
-const iff: symbol = sym("iff");
+const iff: symbol = sym("if");
 const begin: symbol = sym("do");
 const set: symbol = sym("set");
 const lambda: symbol = sym("fn");
@@ -78,7 +78,7 @@ export function evaluate(e: BelT, r: Environment, k: Continuation): void {
       break;
 
     case iff:
-      evaluateIf(cadr(p), caddr(p), cadddr(p), r, k);
+      evaluateIf(cadr(p), caddr(p), cdddr(p), r, k);
       break;
 
     case begin:

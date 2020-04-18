@@ -147,7 +147,7 @@ const apply = sym_1.sym("apply");
 const o = sym_1.sym("o");
 const lit = sym_1.sym("lit");
 const quote = sym_1.sym("quote");
-const iff = sym_1.sym("iff");
+const iff = sym_1.sym("if");
 const begin = sym_1.sym("do");
 const set = sym_1.sym("set");
 const lambda = sym_1.sym("fn");
@@ -186,7 +186,7 @@ function evaluate(e, r, k) {
             evaluateQuote(pair_1.cadr(p), r, k);
             break;
         case iff:
-            iff_1.evaluateIf(pair_1.cadr(p), pair_1.caddr(p), pair_1.cadddr(p), r, k);
+            iff_1.evaluateIf(pair_1.cadr(p), pair_1.caddr(p), pair_1.cdddr(p), r, k);
             break;
         case begin:
             begin_1.evaluateBegin(pair_1.cdr(p), r, k);
@@ -489,6 +489,7 @@ exports.extendEnv = extendEnv;
 },{"./pair":8,"./sym":12}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const pair_1 = require("./pair");
 const continuation_1 = require("./continuation");
 const bel_1 = require("./bel");
 class IfCont extends continuation_1.Continuation {
@@ -499,7 +500,23 @@ class IfCont extends continuation_1.Continuation {
         this.r = r;
     }
     resume(v) {
-        bel_1.evaluate(v === null ? this.ef : this.et, this.r, this.k);
+        let k = this.k;
+        if (v === null) {
+            if (this.ef === null) {
+                k.resume(null);
+                return;
+            }
+            const p = this.ef;
+            const alt = pair_1.car(p);
+            if (pair_1.cddr(p) === null) {
+                bel_1.evaluate(alt, this.r, k);
+                return;
+            }
+            evaluateIf(alt, pair_1.cadr(p), pair_1.cddr(p), this.r, k);
+        }
+        else {
+            bel_1.evaluate(this.et, this.r, k);
+        }
     }
 }
 function evaluateIf(ec, et, ef, r, k) {
@@ -507,7 +524,7 @@ function evaluateIf(ec, et, ef, r, k) {
 }
 exports.evaluateIf = evaluateIf;
 
-},{"./bel":3,"./continuation":5}],8:[function(require,module,exports){
+},{"./bel":3,"./continuation":5,"./pair":8}],8:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const type_1 = require("./type");
@@ -560,6 +577,10 @@ function cadddr(e) {
     return car(cdr(cdr(cdr(e))));
 }
 exports.cadddr = cadddr;
+function cdddr(e) {
+    return cdr(cdr(cdr(e)));
+}
+exports.cdddr = cdddr;
 function cddr(e) {
     return cdr(cdr(e));
 }
