@@ -5,7 +5,6 @@ import { Continuation } from "./continuation";
 import { Environment } from "./environment";
 import { Macro, Value, macro } from "./value";
 import { evaluate } from "./bel";
-import { pr } from "./print";
 
 function applyArgs(args: Pair): Pair {
   // arrange args
@@ -88,7 +87,7 @@ class MacroCont extends Continuation {
   }
 
   resume(expanded: BelT): void {
-    pr("macro", expanded);
+    //pr("macro", expanded);
     evaluate(expanded, this.r, this.k as Continuation);
   }
 }

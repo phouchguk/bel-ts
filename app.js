@@ -6,7 +6,6 @@ const pair_1 = require("./pair");
 const continuation_1 = require("./continuation");
 const value_1 = require("./value");
 const bel_1 = require("./bel");
-const print_1 = require("./print");
 function applyArgs(args) {
     let rev = null;
     while (true) {
@@ -58,7 +57,6 @@ class MacroCont extends continuation_1.Continuation {
         this.r = r;
     }
     resume(expanded) {
-        print_1.pr("macro", expanded);
         bel_1.evaluate(expanded, this.r, this.k);
     }
 }
@@ -100,7 +98,7 @@ function evaluateApplication(op, args, r, k) {
 }
 exports.evaluateApplication = evaluateApplication;
 
-},{"./bel":3,"./continuation":5,"./pair":8,"./print":10,"./sym":12,"./value":14}],2:[function(require,module,exports){
+},{"./bel":3,"./continuation":5,"./pair":8,"./sym":12,"./value":14}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const pair_1 = require("./pair");
@@ -211,6 +209,7 @@ exports.evaluate = evaluate;
 },{"./application":1,"./begin":2,"./iff":7,"./pair":8,"./set":11,"./sym":12,"./type":13,"./value":14}],4:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const type_1 = require("./type");
 const sym_1 = require("./sym");
 const pair_1 = require("./pair");
 const parse_1 = require("./parse");
@@ -242,6 +241,21 @@ prim("coin", () => (Math.random() * 2 > 1 ? t : null), 0);
 prim("display", (s) => {
     console.log(s);
     return s;
+}, 1);
+prim("type", (x) => {
+    if (x === null || sym_1.symbol(x)) {
+        return sym_1.sym("symbol");
+    }
+    if (pair_1.pair(x)) {
+        return sym_1.sym("pair");
+    }
+    if (type_1.number(x)) {
+        return sym_1.sym("number");
+    }
+    if (type_1.string(x)) {
+        return sym_1.sym("string");
+    }
+    return sym_1.sym("???");
 }, 1);
 env = new environment_1.VariableEnv(env, sym_1.sym("ccc"), value_1.ccc);
 function equal(e1, e2) {
@@ -367,7 +381,7 @@ function bel(s, err, exp, res) {
 }
 exports.bel = bel;
 
-},{"./bel":3,"./continuation":5,"./environment":6,"./pair":8,"./parse":9,"./print":10,"./sym":12,"./value":14}],5:[function(require,module,exports){
+},{"./bel":3,"./continuation":5,"./environment":6,"./pair":8,"./parse":9,"./print":10,"./sym":12,"./type":13,"./value":14}],5:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const pair_1 = require("./pair");
@@ -1174,6 +1188,20 @@ function read(e) {
         }
     }
 }
+const request = new XMLHttpRequest();
+request.open("GET", "prelude.bel", true);
+request.onload = function () {
+    if (this.status >= 200 && this.status < 400) {
+        boot_1.bel(this.response, gotErr, gotExp, gotResult);
+    }
+    else {
+        say("error", "could not load prelude");
+    }
+};
+request.onerror = function () {
+    say("error", "connection error");
+};
+request.send();
 repl.addEventListener("keyup", read, false);
 
 },{"./boot":4,"./print":10}]},{},[15]);

@@ -1,4 +1,4 @@
-import { BelT, ExpressionHandler, Pair, StringHandler } from "./type";
+import { BelT, ExpressionHandler, Pair, StringHandler, number, string } from "./type";
 import { nom, sym, symbol } from "./sym";
 import { car, cdr, join, pair, xar, xdr } from "./pair";
 import { parse } from "./parse";
@@ -37,6 +37,30 @@ prim(
   (s: string) => {
     console.log(s);
     return s;
+  },
+  1
+);
+
+prim(
+  "type",
+  (x: BelT) => {
+    if (x === null || symbol(x)) {
+      return sym("symbol");
+    }
+
+    if (pair(x)) {
+      return sym("pair");
+    }
+
+    if (number(x)) {
+      return sym("number");
+    }
+
+    if (string(x)) {
+      return sym("string");
+    }
+
+    return sym("???");
   },
   1
 );

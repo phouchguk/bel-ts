@@ -100,4 +100,21 @@ function read(e: KeyboardEvent): void {
   }
 }
 
+const request = new XMLHttpRequest();
+request.open("GET", "prelude.bel", true);
+
+request.onload = function() {
+  if (this.status >= 200 && this.status < 400) {
+    bel(this.response, gotErr, gotExp, gotResult);
+  } else {
+    say("error", "could not load prelude");
+  }
+};
+
+request.onerror = function() {
+  say("error", "connection error");
+};
+
+request.send();
+
 repl.addEventListener("keyup", read, false);

@@ -1,5 +1,50 @@
-; this is the prelude
-(set no (fn (x) (id x nil))) ; in the no
+;; bel source
+(set no (fn (x)
+  (id x nil)))
+
+(set atom (fn (x)
+  (no (id (type x) 'pair))))
+
+(set all (fn (f xs)
+  (if (no xs)      t
+      (f (car xs)) (all f (cdr xs))
+                   nil)))
+
+(set some (fn (f xs)
+  (if (no xs)      nil
+      (f (car xs)) xs
+                   (some f (cdr xs)))))
+
+(set reduce (fn (f xs)
+  (if (no (cdr xs))
+      (car xs)
+      (f (car xs) (reduce f (cdr xs))))))
+
+(set cons (fn args
+  (reduce join args)))
+
+(set append (fn args
+  (if (no (cdr args)) (car args)
+      (no (car args)) (apply append (cdr args))
+                      (cons (car (car args))
+                            (apply append (cdr (car args))
+                                          (cdr args))))))
+
+(set snoc (fn args
+  (append (car args) (cdr args))))
+
+(set list (fn args
+  (append args nil)))
+
+(set map (fn (f . ls)
+  (if (no ls)       nil
+      (some no ls)  nil
+      (no (cdr ls)) (cons (f (car (car ls)))
+                          (map f (cdr (car ls))))
+                    (cons (apply f (map car ls))
+                          (apply map f (map cdr ls))))))
+
+;; tests
 
 (set double (macro (x) (join '* (join x (join x nil)))))
 
