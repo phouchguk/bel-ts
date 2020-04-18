@@ -155,8 +155,17 @@ function expand(exp: BelT): BelT {
 
       while (p !== null) {
         xar(p, expand(car(p)));
-        p = cdr(p) as Pair;
+
+        const d: BelT = cdr(p);
+
+        if (d === null || pair(d)) {
+          p = d as Pair;
+          continue;
+        }
+
         // improper?
+        xdr(p, expand(d));
+        break;
       }
     } else {
       if (symbol(exp)) {

@@ -1,2 +1,40 @@
 ; this is the prelude
 (set no (fn (x) (id x nil))) ; in the no
+
+(set double (macro (x) (join '* (join x (join x nil)))))
+
+(set x 30)
+
+1
+
+2
+
+(display "done;") ; testing ; doesn't mess up string
+
+(iff (coin)
+     ((fn (x) x) (+ x 12))
+     (ccc (fn (return)
+            (iff (coin)
+                 (return (- 100 1))
+                 3))))
+
+(double 7)
+
+(no (double 9))
+
+(no nil)
+
+(no t)
+
+id
+
+(apply + '(1 2))
+
+(apply + 1 '(2))
+
+(fn (a . b) b) ; checking expand handles improper lists
+
+((fn (a . b) a) 1 2 3)
+((fn (a . b) b) 1 2 3)
+
+(apply (fn (a b . c) (join a (join b (join c nil)))) '(1 2 . 3))

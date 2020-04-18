@@ -318,7 +318,13 @@ function expand(exp) {
             let p = exp;
             while (p !== null) {
                 pair_1.xar(p, expand(pair_1.car(p)));
-                p = pair_1.cdr(p);
+                const d = pair_1.cdr(p);
+                if (d === null || pair_1.pair(d)) {
+                    p = d;
+                    continue;
+                }
+                pair_1.xdr(p, expand(d));
+                break;
             }
         }
         else {
@@ -605,6 +611,7 @@ function parse(s, callback) {
     }
 }
 exports.parse = parse;
+let comment = false;
 let improper = false;
 let expectClose = false;
 let inStr = false;
@@ -643,6 +650,12 @@ function parseChar(c) {
         }
     }
     else {
+        if (comment) {
+            if (c === "\n") {
+                comment = false;
+            }
+            return;
+        }
         if (c.trim() === "") {
             if (token.length > 0) {
                 parseToken(token.join(""));
@@ -671,10 +684,15 @@ function parseChar(c) {
             c === "'" ||
             c === "`" ||
             c === "`" ||
-            c === ",") {
+            c === "," ||
+            c === ";") {
             if (token.length > 0) {
                 parseToken(token.join(""));
                 token.length = 0;
+            }
+            if (c === ";") {
+                comment = true;
+                return;
             }
             if (c === ",") {
                 comma = true;
