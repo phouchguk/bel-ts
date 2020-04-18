@@ -1,6 +1,6 @@
 import { BelT, ExpressionHandler, Pair } from "./type";
 import { sym } from "./sym";
-import { car, cdr, join } from "./pair";
+import { car, cadr, cdr, cddr, join, xdr } from "./pair";
 
 let send: null | ExpressionHandler = null;
 const token: string[] = [];
@@ -20,6 +20,9 @@ export function parse(s: string, callback: ExpressionHandler): void {
   }
 }
 
+//let comment: boolean = false;
+let improper: boolean = false;
+let expectClose: boolean = false;
 let inStr: boolean = false;
 let strEscape: boolean = false;
 let comma: boolean = false;
@@ -152,6 +155,10 @@ function quote(q: string): symbol {
 
 function parseToken(token: string): void {
   if (token === "(") {
+    if (expectClose) {
+      throw new Error("bad '('");
+    }
+
     listStack = join(null, listStack);
 
     quoteStack = join(quoteNext, quoteStack);
@@ -160,9 +167,21 @@ function parseToken(token: string): void {
     return;
   }
 
+
+  if (token === ".") {
+    if (listStack === null || improper || expectClose) {
+      throw new Error("bad '.'");
+    } else {
+      improper = true;
+      return;
+    }
+  }
+
   if (token === ")") {
     if (listStack === null) {
       throw new Error("bad ')'");
+    } else if (improper && !expectClose) {
+      throw new Error("bad '.'");
     } else {
       let q: string = car(quoteStack) as string;
       quoteStack = cdr(quoteStack) as Pair;
@@ -176,6 +195,26 @@ function parseToken(token: string): void {
       while (list !== null) {
         xs = join(car(list), xs);
         list = cdr(list) as Pair;
+      }
+
+      if (expectClose) {
+        // make the list improper
+
+        list = xs;
+
+        while (list !== null) {
+          if (cddr(list) === null) {
+            xdr(list, cadr(list));
+
+            improper = false;
+            expectClose = false;
+
+            break;
+          }
+
+
+          list = cdr(list) as Pair;
+        }
       }
 
       if (q !== "") {
@@ -225,6 +264,10 @@ function parseToken(token: string): void {
   if (quoteNext.length > 0) {
     atom = join(quote(quoteNext), join(atom, null));
     quoteNext = "";
+  }
+
+  if (improper) {
+    expectClose = true;
   }
 
   if (listStack === null) {

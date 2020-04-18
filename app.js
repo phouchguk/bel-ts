@@ -605,6 +605,8 @@ function parse(s, callback) {
     }
 }
 exports.parse = parse;
+let improper = false;
+let expectClose = false;
 let inStr = false;
 let strEscape = false;
 let comma = false;
@@ -714,14 +716,29 @@ function quote(q) {
 }
 function parseToken(token) {
     if (token === "(") {
+        if (expectClose) {
+            throw new Error("bad '('");
+        }
         listStack = pair_1.join(null, listStack);
         quoteStack = pair_1.join(quoteNext, quoteStack);
         quoteNext = "";
         return;
     }
+    if (token === ".") {
+        if (listStack === null || improper || expectClose) {
+            throw new Error("bad '.'");
+        }
+        else {
+            improper = true;
+            return;
+        }
+    }
     if (token === ")") {
         if (listStack === null) {
             throw new Error("bad ')'");
+        }
+        else if (improper && !expectClose) {
+            throw new Error("bad '.'");
         }
         else {
             let q = pair_1.car(quoteStack);
@@ -732,6 +749,18 @@ function parseToken(token) {
             while (list !== null) {
                 xs = pair_1.join(pair_1.car(list), xs);
                 list = pair_1.cdr(list);
+            }
+            if (expectClose) {
+                list = xs;
+                while (list !== null) {
+                    if (pair_1.cddr(list) === null) {
+                        pair_1.xdr(list, pair_1.cadr(list));
+                        improper = false;
+                        expectClose = false;
+                        break;
+                    }
+                    list = pair_1.cdr(list);
+                }
             }
             if (q !== "") {
                 xs = pair_1.join(quote(q), pair_1.join(xs, null));
@@ -774,6 +803,9 @@ function parseToken(token) {
     if (quoteNext.length > 0) {
         atom = pair_1.join(quote(quoteNext), pair_1.join(atom, null));
         quoteNext = "";
+    }
+    if (improper) {
+        expectClose = true;
     }
     if (listStack === null) {
         send(atom);
