@@ -20,7 +20,7 @@ export function parse(s: string, callback: ExpressionHandler): void {
   }
 }
 
-//let comment: boolean = false;
+let comment: boolean = false;
 let improper: boolean = false;
 let expectClose: boolean = false;
 let inStr: boolean = false;
@@ -67,6 +67,14 @@ function parseChar(c: string): void {
       token.length = 0;
     }
   } else {
+    if (comment) {
+       if (c === "\n") {
+         comment = false;
+       }
+
+       return;
+    }
+
     if (c.trim() === "") {
       if (token.length > 0) {
         parseToken(token.join(""));
@@ -102,11 +110,17 @@ function parseChar(c: string): void {
       c === "'" ||
       c === "`" ||
       c === "`" ||
-      c === ","
+      c === "," ||
+      c === ";"
     ) {
       if (token.length > 0) {
         parseToken(token.join(""));
         token.length = 0;
+      }
+
+      if (c === ";") {
+        comment = true;
+        return;
       }
 
       if (c === ",") {

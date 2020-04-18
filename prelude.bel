@@ -1,1 +1,2 @@
-(set no (fn (x) (id x nil)))
+; this is the prelude
+(set no (fn (x) (id x nil))) ; in the no
