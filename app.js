@@ -34,16 +34,11 @@ class ApplyCont extends continuation_1.Continuation {
         this.r = r;
     }
     resume(args) {
-        let k = this.k;
         if (this.f === sym_1.sym("apply")) {
             this.f = pair_1.car(args);
-            if (value_1.macro(this.f)) {
-                console.log("MACRO APPLY");
-                k = new MacroCont(k, this.r);
-            }
             args = applyArgs(pair_1.cdr(args));
         }
-        this.f.invoke(args, this.r, k);
+        this.f.invoke(args, this.r, this.k);
     }
 }
 class ArgumentCont extends continuation_1.Continuation {
@@ -738,6 +733,8 @@ function parseChar(c) {
         }
         if (c === "(" ||
             c === ")" ||
+            c === "[" ||
+            c === "]" ||
             c === "'" ||
             c === "`" ||
             c === "`" ||
@@ -755,7 +752,7 @@ function parseChar(c) {
                 comma = true;
                 return;
             }
-            if (c === "(" || c === ")") {
+            if (c === "(" || c === ")" || c === "[" || c === "]") {
                 parseToken(c);
             }
             else {
@@ -769,6 +766,7 @@ function parseChar(c) {
 }
 let listStack = null;
 let quoteStack = null;
+let squareStack = null;
 function pushLs(x) {
     let list = pair_1.car(listStack);
     list = pair_1.join(x, list);
@@ -790,13 +788,14 @@ function quote(q) {
     }
 }
 function parseToken(token) {
-    if (token === "(") {
+    if (token === "(" || token === "[") {
         if (expectClose) {
             throw new Error("bad '('");
         }
         listStack = pair_1.join(null, listStack);
         quoteStack = pair_1.join(quoteNext, quoteStack);
         quoteNext = "";
+        squareStack = pair_1.join(token === "[" ? sym_1.t : null, squareStack);
         return;
     }
     if (token === ".") {
@@ -808,9 +807,9 @@ function parseToken(token) {
             return;
         }
     }
-    if (token === ")") {
+    if (token === ")" || token === "]") {
         if (listStack === null) {
-            throw new Error("bad ')'");
+            throw new Error("bad '" + token + "'");
         }
         else if (improper && !expectClose) {
             throw new Error("bad '.'");
@@ -818,6 +817,8 @@ function parseToken(token) {
         else {
             let q = pair_1.car(quoteStack);
             quoteStack = pair_1.cdr(quoteStack);
+            let b = pair_1.car(squareStack);
+            squareStack = pair_1.cdr(squareStack);
             let list = pair_1.car(listStack);
             listStack = pair_1.cdr(listStack);
             let xs = null;
@@ -839,6 +840,10 @@ function parseToken(token) {
             }
             if (q !== "") {
                 xs = pair_1.join(quote(q), pair_1.join(xs, null));
+            }
+            if (b !== null) {
+                const sbargs = pair_1.join(sym_1.sym("_"), null);
+                xs = pair_1.join(sym_1.sym("fn"), pair_1.join(sbargs, pair_1.join(xs, null)));
             }
             if (listStack === null) {
                 send(xs);

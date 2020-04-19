@@ -1,5 +1,5 @@
 import { BelT, ExpressionHandler, Pair } from "./type";
-import { sym } from "./sym";
+import { sym, t } from "./sym";
 import { car, cadr, cdr, cddr, join, xdr } from "./pair";
 
 let send: null | ExpressionHandler = null;
@@ -107,6 +107,8 @@ function parseChar(c: string): void {
     if (
       c === "(" ||
       c === ")" ||
+      c === "[" ||
+      c === "]" ||
       c === "'" ||
       c === "`" ||
       c === "`" ||
@@ -128,7 +130,7 @@ function parseChar(c: string): void {
         return;
       }
 
-      if (c === "(" || c === ")") {
+      if (c === "(" || c === ")" || c === "[" || c === "]") {
         parseToken(c);
       } else {
         quoteNext = c;
@@ -141,6 +143,7 @@ function parseChar(c: string): void {
 
 let listStack: Pair = null;
 let quoteStack: Pair = null;
+let squareStack: Pair = null;
 
 function pushLs(x: BelT): void {
   let list: BelT = car(listStack);
@@ -168,7 +171,7 @@ function quote(q: string): symbol {
 }
 
 function parseToken(token: string): void {
-  if (token === "(") {
+  if (token === "(" || token === "[") {
     if (expectClose) {
       throw new Error("bad '('");
     }
@@ -177,6 +180,8 @@ function parseToken(token: string): void {
 
     quoteStack = join(quoteNext, quoteStack);
     quoteNext = "";
+
+    squareStack = join(token === "[" ? t : null, squareStack);
 
     return;
   }
@@ -191,14 +196,17 @@ function parseToken(token: string): void {
     }
   }
 
-  if (token === ")") {
+  if (token === ")" || token === "]") {
     if (listStack === null) {
-      throw new Error("bad ')'");
+      throw new Error("bad '" + token  + "'");
     } else if (improper && !expectClose) {
       throw new Error("bad '.'");
     } else {
       let q: string = car(quoteStack) as string;
       quoteStack = cdr(quoteStack) as Pair;
+
+      let b: BelT = car(squareStack);
+      squareStack = cdr(squareStack) as Pair;
 
       // reverse list
       let list: Pair = car(listStack) as Pair;
@@ -233,6 +241,12 @@ function parseToken(token: string): void {
 
       if (q !== "") {
         xs = join(quote(q), join(xs, null));
+      }
+
+      if (b !== null) {
+        // square bracket fn
+        const sbargs: Pair = join(sym("_"), null);
+        xs = join(sym("fn"), join(sbargs, join(xs, null)));
       }
 
       if (listStack === null) {

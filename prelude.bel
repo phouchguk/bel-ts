@@ -1,6 +1,5 @@
 ;; bel source
-(set no (fn (x)
-  (id x nil)))
+(set no [id _ nil])
 
 (set atom (fn (x)
   (no (id (type x) 'pair))))
