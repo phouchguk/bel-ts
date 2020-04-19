@@ -152,6 +152,7 @@ const begin = sym_1.sym("do");
 const set = sym_1.sym("set");
 const lambda = sym_1.sym("fn");
 const macro = sym_1.sym("macro");
+const bq = sym_1.sym("bquote");
 function selfEvaluating(x) {
     return (x === null ||
         type_1.number(x) ||
@@ -180,31 +181,54 @@ function evaluate(e, r, k) {
         evaluateVariable(e, r, k);
         return;
     }
-    let p = e;
-    switch (pair_1.car(p)) {
-        case quote:
-            evaluateQuote(pair_1.cadr(p), r, k);
-            break;
-        case iff:
-            iff_1.evaluateIf(pair_1.cadr(p), pair_1.caddr(p), pair_1.cdddr(p), r, k);
-            break;
-        case begin:
-            begin_1.evaluateBegin(pair_1.cdr(p), r, k);
-            break;
-        case set:
-            set_1.evaluateSet(pair_1.cadr(p), pair_1.caddr(p), r, k);
-            break;
-        case lambda:
-            evaluateLambda(pair_1.cadr(p), pair_1.cddr(p), r, k);
-            break;
-        case macro:
-            evaluateMacro(pair_1.cadr(p), pair_1.cddr(p), r, k);
-            break;
-        default:
-            application_1.evaluateApplication(pair_1.car(p), pair_1.cdr(p), r, k);
+    while (true) {
+        let p = e;
+        switch (pair_1.car(p)) {
+            case quote:
+                evaluateQuote(pair_1.cadr(p), r, k);
+                break;
+            case iff:
+                iff_1.evaluateIf(pair_1.cadr(p), pair_1.caddr(p), pair_1.cdddr(p), r, k);
+                break;
+            case begin:
+                begin_1.evaluateBegin(pair_1.cdr(p), r, k);
+                break;
+            case set:
+                set_1.evaluateSet(pair_1.cadr(p), pair_1.caddr(p), r, k);
+                break;
+            case lambda:
+                evaluateLambda(pair_1.cadr(p), pair_1.cddr(p), r, k);
+                break;
+            case macro:
+                evaluateMacro(pair_1.cadr(p), pair_1.cddr(p), r, k);
+                break;
+            case bq:
+                e = pair_1.car(bquote(pair_1.cdr(p)));
+                continue;
+            default:
+                application_1.evaluateApplication(pair_1.car(p), pair_1.cdr(p), r, k);
+        }
+        break;
     }
 }
 exports.evaluate = evaluate;
+function bquote(x) {
+    if (!pair_1.pair(x)) {
+        return pair_1.join(quote, pair_1.join(x, null));
+    }
+    const p = x;
+    const tag = pair_1.car(p);
+    if (tag === sym_1.sym("comma-at")) {
+        throw new Error("can't splice here");
+    }
+    if (tag === sym_1.sym("comma")) {
+        return pair_1.cadr(p);
+    }
+    if (pair_1.pair(tag) && pair_1.car(tag) === sym_1.sym("comma-at")) {
+        return pair_1.join(sym_1.sym("append"), pair_1.join(pair_1.cadr(tag), pair_1.join(bquote(pair_1.cddr(tag)), null)));
+    }
+    return pair_1.join(sym_1.sym("join"), pair_1.join(bquote(tag), pair_1.join(bquote(pair_1.cdr(p)), null)));
+}
 
 },{"./application":1,"./begin":2,"./iff":7,"./pair":8,"./set":11,"./sym":12,"./type":13,"./value":14}],4:[function(require,module,exports){
 "use strict";
@@ -541,7 +565,6 @@ exports.evaluateIf = evaluateIf;
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const type_1 = require("./type");
-const sym_1 = require("./sym");
 function join(a, d) {
     return new type_1.Cell(a, d);
 }
@@ -617,29 +640,8 @@ function length(xs) {
     return len;
 }
 exports.length = length;
-function bquote(x) {
-    if (pair(x)) {
-        const p = x;
-        if (car(p) === sym_1.sym("comma")) {
-            return car(cdr(p));
-        }
-        else {
-            let qCdr = join(sym_1.sym("bquote"), join(cdr(p), null));
-            if (pair(car(p)) && car(car(p)) === sym_1.sym("comma-at")) {
-                return join(sym_1.sym("append"), join(car(cdr(car(p))), join(qCdr, null)));
-            }
-            else {
-                return join(sym_1.sym("join"), join(join(sym_1.sym("bquote"), join(car(p), null)), join(qCdr, null)));
-            }
-        }
-    }
-    else {
-        return join(sym_1.sym("quote"), join(x, null));
-    }
-}
-exports.bquote = bquote;
 
-},{"./sym":12,"./type":13}],9:[function(require,module,exports){
+},{"./type":13}],9:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const sym_1 = require("./sym");

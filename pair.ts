@@ -1,5 +1,4 @@
 import { BelT, Cell, Pair } from "./type";
-import { sym } from "./sym";
 
 export function join(a: BelT, d: BelT): Cell {
   return new Cell(a, d);
@@ -82,6 +81,7 @@ export function length(xs: Pair): number {
   return len;
 }
 
+/*
 export function bquote(x: BelT) {
   if (pair(x)) {
     const p: Pair = x as Pair;
@@ -107,3 +107,4 @@ export function bquote(x: BelT) {
     return join(sym("quote"), join(x, null));
   }
 }
+*/
