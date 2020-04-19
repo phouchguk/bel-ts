@@ -1,6 +1,4 @@
-import { BelT, ExpressionHandler, Pair } from "./type";
-import { car, length } from "./pair";
-import { Environment } from "./environment";
+import { BelT, ExpressionHandler } from "./type";
 
 export abstract class Continuation {
   k: Continuation | null;
@@ -9,15 +7,6 @@ export abstract class Continuation {
 
   constructor(k: Continuation | null) {
     this.k = k;
-  }
-
-  invoke(vx: Pair, _r: Environment, _k: Continuation): void {
-    if (length(vx) === 1) {
-      this.resume(car(vx));
-      return;
-    }
-
-    throw new Error("continuations expect 1 argument");
   }
 }
 

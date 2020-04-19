@@ -410,17 +410,9 @@ exports.bel = bel;
 },{"./bel":3,"./continuation":5,"./environment":6,"./pair":8,"./parse":9,"./print":10,"./sym":12,"./type":13,"./value":14}],5:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const pair_1 = require("./pair");
 class Continuation {
     constructor(k) {
         this.k = k;
-    }
-    invoke(vx, _r, _k) {
-        if (pair_1.length(vx) === 1) {
-            this.resume(pair_1.car(vx));
-            return;
-        }
-        throw new Error("continuations expect 1 argument");
     }
 }
 exports.Continuation = Continuation;
@@ -435,7 +427,7 @@ class BaseCont extends Continuation {
 }
 exports.BaseCont = BaseCont;
 
-},{"./pair":8}],6:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const sym_1 = require("./sym");
