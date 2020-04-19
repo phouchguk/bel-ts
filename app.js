@@ -435,30 +435,43 @@ class FullEnv extends Environment {
     }
 }
 exports.FullEnv = FullEnv;
+function lookup(e, n, k) {
+    while (true) {
+        if (e.name === n) {
+            k.resume(e.value);
+            return;
+        }
+        if (e.other === theEmptyEnvironment) {
+            throw new Error("Unknown variable: " + sym_1.nom(n));
+        }
+        e = e.other;
+    }
+}
+function update(e, n, k, v) {
+    while (true) {
+        if (e.name === n) {
+            e.value = v;
+            k.resume(v);
+            return;
+        }
+        if (e.other === theEmptyEnvironment) {
+            e.other = new VariableEnv(theEmptyEnvironment, n, v);
+            k.resume(v);
+            return;
+        }
+        e = e.other;
+    }
+}
 class VariableEnv extends FullEnv {
     constructor(other, name, value) {
         super(other, name);
         this.value = value;
     }
     lookup(n, k) {
-        if (this.name === n) {
-            k.resume(this.value);
-            return;
-        }
-        this.other.lookup(n, k);
+        lookup(this, n, k);
     }
     update(n, k, v) {
-        if (this.name === n) {
-            this.value = v;
-            k.resume(v);
-            return;
-        }
-        if (this.other === theEmptyEnvironment) {
-            this.other = new VariableEnv(theEmptyEnvironment, n, v);
-            k.resume(v);
-            return;
-        }
-        this.other.update(n, k, v);
+        update(this, n, k, v);
     }
 }
 exports.VariableEnv = VariableEnv;

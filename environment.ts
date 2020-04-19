@@ -32,6 +32,40 @@ export abstract class FullEnv extends Environment {
   }
 }
 
+function lookup(e: VariableEnv, n: symbol, k: Continuation) {
+  while (true) {
+    if (e.name === n) {
+      k.resume(e.value);
+      return;
+    }
+
+    if (e.other === theEmptyEnvironment) {
+      throw new Error("Unknown variable: " + nom(n));
+    }
+
+    e = e.other as VariableEnv;
+  }
+}
+
+function update(e: VariableEnv, n: symbol, k: Continuation, v: BelT) {
+  while (true) {
+    if (e.name === n) {
+      e.value = v;
+      k.resume(v);
+
+      return;
+    }
+
+    if (e.other === theEmptyEnvironment) {
+      e.other = new VariableEnv(theEmptyEnvironment, n, v);
+      k.resume(v);
+      return;
+    }
+
+    e = e.other as VariableEnv;
+  }
+}
+
 export class VariableEnv extends FullEnv {
   value: BelT;
 
@@ -42,28 +76,11 @@ export class VariableEnv extends FullEnv {
   }
 
   lookup(n: symbol, k: Continuation): void {
-    if (this.name === n) {
-      k.resume(this.value);
-      return;
-    }
-
-    this.other.lookup(n, k);
+    lookup(this, n, k);
   }
 
   update(n: symbol, k: Continuation, v: BelT): void {
-    if (this.name === n) {
-      this.value = v;
-      k.resume(v);
-      return;
-    }
-
-    if (this.other === theEmptyEnvironment) {
-      this.other = new VariableEnv(theEmptyEnvironment, n, v);
-      k.resume(v);
-      return;
-    }
-
-    this.other.update(n, k, v);
+    update(this, n, k, v);
   }
 }
 
