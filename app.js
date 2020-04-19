@@ -187,6 +187,9 @@ function evaluate(e, r, k) {
             case quote:
                 evaluateQuote(pair_1.cadr(p), r, k);
                 break;
+            case bq:
+                e = bquote(pair_1.cadr(p));
+                continue;
             case iff:
                 iff_1.evaluateIf(pair_1.cadr(p), pair_1.caddr(p), pair_1.cdddr(p), r, k);
                 break;
@@ -202,9 +205,6 @@ function evaluate(e, r, k) {
             case macro:
                 evaluateMacro(pair_1.cadr(p), pair_1.cddr(p), r, k);
                 break;
-            case bq:
-                e = pair_1.car(bquote(pair_1.cdr(p)));
-                continue;
             default:
                 application_1.evaluateApplication(pair_1.car(p), pair_1.cdr(p), r, k);
         }

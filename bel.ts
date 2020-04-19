@@ -80,6 +80,10 @@ export function evaluate(e: BelT, r: Environment, k: Continuation): void {
         evaluateQuote(cadr(p), r, k);
         break;
 
+      case bq:
+        e = bquote(cadr(p));
+        continue;
+
       case iff:
         evaluateIf(cadr(p), caddr(p), cdddr(p), r, k);
         break;
@@ -99,11 +103,6 @@ export function evaluate(e: BelT, r: Environment, k: Continuation): void {
       case macro:
         evaluateMacro(cadr(p), cddr(p), r, k);
         break;
-
-      case bq:
-        e = bquote(cdr(p));
-        //pr("bquote", e);
-        continue;
 
       default:
         evaluateApplication(car(p), cdr(p), r, k);

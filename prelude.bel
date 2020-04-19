@@ -44,9 +44,12 @@
                     (cons (apply f (map car ls))
                           (apply map f (map cdr ls))))))
 
+(set let (macro (parms val . body)
+  `((fn (,parms) ,@body) ,val)))
+
 ;; tests
 
-(set double (macro (x) (join '* (join x (join x nil)))))
+(set double (macro (x) `(+ ,x ,x)))
 
 (double 7)
 
@@ -92,12 +95,5 @@
 
 (map cons '(a b c) '(1 2))
 
-(set x 42)
-
-(set test (fn () (list x x x)))
-
-(test)
-
-`(* ,x ,x ,x)
-
-`(* ,@(test))
+(let x 'a
+    (cons x 'b))

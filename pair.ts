@@ -80,31 +80,3 @@ export function length(xs: Pair): number {
 
   return len;
 }
-
-/*
-export function bquote(x: BelT) {
-  if (pair(x)) {
-    const p: Pair = x as Pair;
-
-    if (car(p) === sym("comma")) {
-      return car(cdr(p) as Pair);
-    } else {
-      let qCdr = join(sym("bquote"), join(cdr(p), null));
-
-      if (pair(car(p)) && car(car(p) as Pair) === sym("comma-at")) {
-        return join(
-          sym("append"),
-          join(car(cdr(car(p) as Pair) as Pair), join(qCdr, null))
-        );
-      } else {
-        return join(
-          sym("join"),
-          join(join(sym("bquote"), join(car(p), null)), join(qCdr, null))
-        );
-      }
-    }
-  } else {
-    return join(sym("quote"), join(x, null));
-  }
-}
-*/
