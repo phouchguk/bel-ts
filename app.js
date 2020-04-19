@@ -669,6 +669,14 @@ let expectClose = false;
 let inStr = false;
 let strEscape = false;
 let comma = false;
+function addqn(s) {
+    if (quoteNext === "") {
+        quoteNext = s;
+    }
+    else {
+        quoteNext += ":" + s;
+    }
+}
 function parseChar(c) {
     if (inStr) {
         if (strEscape) {
@@ -718,10 +726,10 @@ function parseChar(c) {
         if (comma) {
             comma = false;
             if (c === "@") {
-                quoteNext = ",@";
+                addqn(",@");
             }
             else {
-                quoteNext = ",";
+                addqn(",");
                 parseChar(c);
             }
             return;
@@ -756,7 +764,7 @@ function parseChar(c) {
                 parseToken(c);
             }
             else {
-                quoteNext = c;
+                addqn(c);
             }
         }
         else {
@@ -839,7 +847,7 @@ function parseToken(token) {
                 }
             }
             if (q !== "") {
-                xs = pair_1.join(quote(q), pair_1.join(xs, null));
+                xs = unqn(q, xs);
             }
             if (b !== null) {
                 const sbargs = pair_1.join(sym_1.sym("_"), null);
@@ -881,7 +889,7 @@ function parseToken(token) {
         }
     }
     if (quoteNext.length > 0) {
-        atom = pair_1.join(quote(quoteNext), pair_1.join(atom, null));
+        atom = unqn(quoteNext, atom);
         quoteNext = "";
     }
     if (improper) {
@@ -893,6 +901,13 @@ function parseToken(token) {
     else {
         pushLs(atom);
     }
+}
+function unqn(qn, xs) {
+    let qnParts = qn.split(":");
+    for (let i = qnParts.length - 1; i >= 0; i--) {
+        xs = pair_1.join(quote(qnParts[i]), pair_1.join(xs, null));
+    }
+    return xs;
 }
 
 },{"./pair":8,"./sym":12}],10:[function(require,module,exports){

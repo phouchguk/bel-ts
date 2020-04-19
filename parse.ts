@@ -27,6 +27,14 @@ let inStr: boolean = false;
 let strEscape: boolean = false;
 let comma: boolean = false;
 
+function addqn(s: string): void {
+  if (quoteNext === "") {
+    quoteNext = s;
+  } else {
+    quoteNext += ":" + s;
+  }
+}
+
 function parseChar(c: string): void {
   if (inStr) {
     if (strEscape) {
@@ -88,9 +96,9 @@ function parseChar(c: string): void {
       comma = false;
 
       if (c === "@") {
-        quoteNext = ",@";
+        addqn(",@");
       } else {
-        quoteNext = ",";
+        addqn(",");
 
         parseChar(c);
       }
@@ -133,7 +141,7 @@ function parseChar(c: string): void {
       if (c === "(" || c === ")" || c === "[" || c === "]") {
         parseToken(c);
       } else {
-        quoteNext = c;
+        addqn(c);
       }
     } else {
       token.push(c);
@@ -240,7 +248,8 @@ function parseToken(token: string): void {
       }
 
       if (q !== "") {
-        xs = join(quote(q), join(xs, null));
+        xs = unqn(q, xs);
+        //xs = join(quote(q), join(xs, null));
       }
 
       if (b !== null) {
@@ -290,7 +299,7 @@ function parseToken(token: string): void {
   }
 
   if (quoteNext.length > 0) {
-    atom = join(quote(quoteNext), join(atom, null));
+    atom = unqn(quoteNext, atom);
     quoteNext = "";
   }
 
@@ -304,4 +313,15 @@ function parseToken(token: string): void {
     // parsing a list
     pushLs(atom);
   }
+}
+
+
+function unqn(qn: string, xs: BelT): Pair {
+  let qnParts: string[] = qn.split(":");
+
+  for(let i: number = qnParts.length - 1; i >= 0; i--) {
+    xs = join(quote(qnParts[i]), join(xs, null));
+  }
+
+  return xs as Pair;
 }
