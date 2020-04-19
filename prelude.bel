@@ -177,3 +177,14 @@
       'unknown))
 
 (sname '+)
+
+(iflet x nil      'foo
+         '(a b c) (car x)
+                  'bar)
+
+(map (fn (x)
+       (aif (cdr x) (car it)))
+     '((a) (b c) (d e f) (g)))
+
+(find [= (car _) 2]
+      '((1 "pear") (2 "apple") (3 "grape")))
