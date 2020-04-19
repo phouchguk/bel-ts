@@ -19,7 +19,7 @@ export class NullEnv extends Environment {
   }
 }
 
-const theEmptyEnvironment = new NullEnv();
+export const theEmptyEnvironment = new NullEnv();
 
 export abstract class FullEnv extends Environment {
   other: Environment;

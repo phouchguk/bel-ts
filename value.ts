@@ -2,7 +2,7 @@ import { BelT, Pair } from "./type";
 import { nom, sym } from "./sym";
 import { car, join, length, toArray } from "./pair";
 import { Continuation } from "./continuation";
-import { Environment, VariableEnv, extendEnv } from "./environment";
+import { Environment, VariableEnv, extendEnv, theEmptyEnvironment } from "./environment";
 import { evaluateBegin } from "./begin";
 import { Next } from "./next";
 
@@ -28,6 +28,20 @@ export class Fn extends Value {
   invoke(vx: BelT, k: Continuation): Next {
     let env = extendEnv(this.env as VariableEnv, this.variables, vx);
     return evaluateBegin(this.body, env, k);
+  }
+}
+
+class K extends Fn {
+  k: Continuation;
+
+  constructor(k: Continuation) {
+    super(null, null, theEmptyEnvironment);
+
+    this.k = k;
+  }
+
+  invoke(vx: BelT, _: Continuation): Next {
+    return new Next(this.k, vx);
   }
 }
 
@@ -73,7 +87,10 @@ export const ccc = new Primitive(sym("ccc"), function(
   const p: Pair = vx as Pair;
 
   if (length(p) === 1) {
-    return (car(p) as Value).invoke(join(k, null),  k);
+    const f: Fn = car(p) as Fn;
+    const args: BelT = join(new K(k), null);
+
+    return f.invoke(args, k);
   }
 
   throw new Error("bad arity: ccc");

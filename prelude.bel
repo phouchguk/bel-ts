@@ -188,3 +188,5 @@
 
 (find [= (car _) 2]
       '((1 "pear") (2 "apple") (3 "grape")))
+
+(ccc (fn (return) (if (coin) (return (- 100 1)) 3)))

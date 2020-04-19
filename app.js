@@ -6,6 +6,7 @@ const pair_1 = require("./pair");
 const continuation_1 = require("./continuation");
 const value_1 = require("./value");
 const bel_1 = require("./bel");
+const next_1 = require("./next");
 function applyArgs(args) {
     let rev = null;
     while (true) {
@@ -28,17 +29,16 @@ function applyArgs(args) {
     return args;
 }
 class ApplyCont extends continuation_1.Continuation {
-    constructor(k, f, r) {
+    constructor(k, f) {
         super(k);
         this.f = f;
-        this.r = r;
     }
     resume(args) {
         if (this.f === sym_1.sym("apply")) {
             this.f = pair_1.car(args);
             args = applyArgs(pair_1.cdr(args));
         }
-        this.f.invoke(args, this.r, this.k);
+        return this.f.invoke(args, this.k);
     }
 }
 class ArgumentCont extends continuation_1.Continuation {
@@ -48,7 +48,7 @@ class ArgumentCont extends continuation_1.Continuation {
         this.r = r;
     }
     resume(arg) {
-        evaluateArguments(pair_1.cdr(this.remaining), this.r, new GatherCont(this.k, arg));
+        return evaluateArguments(pair_1.cdr(this.remaining), this.r, new GatherCont(this.k, arg));
     }
 }
 class MacroCont extends continuation_1.Continuation {
@@ -57,7 +57,7 @@ class MacroCont extends continuation_1.Continuation {
         this.r = r;
     }
     resume(expanded) {
-        bel_1.evaluate(expanded, this.r, this.k);
+        return bel_1.evaluate(expanded, this.r, this.k);
     }
 }
 class EvFnCont extends continuation_1.Continuation {
@@ -69,10 +69,10 @@ class EvFnCont extends continuation_1.Continuation {
     resume(op) {
         if (value_1.macro(op)) {
             let m = op;
-            m.invoke(this.args, this.r, new MacroCont(this.k, this.r));
+            return m.invoke(this.args, new MacroCont(this.k, this.r));
         }
         else {
-            evaluateArguments(this.args, this.r, new ApplyCont(this.k, op, this.r));
+            return evaluateArguments(this.args, this.r, new ApplyCont(this.k, op));
         }
     }
 }
@@ -82,28 +82,28 @@ class GatherCont extends continuation_1.Continuation {
         this.arg = arg;
     }
     resume(args) {
-        this.k.resume(pair_1.join(this.arg, args));
+        return this.k.resume(pair_1.join(this.arg, args));
     }
 }
 const noMoreArguments = null;
 function evaluateArguments(args, r, k) {
     if (pair_1.pair(args)) {
-        bel_1.evaluate(pair_1.car(args), r, new ArgumentCont(k, args, r));
-        return;
+        return bel_1.evaluate(pair_1.car(args), r, new ArgumentCont(k, args, r));
     }
-    k.resume(noMoreArguments);
+    return new next_1.Next(k, noMoreArguments);
 }
 function evaluateApplication(op, args, r, k) {
-    bel_1.evaluate(op, r, new EvFnCont(k, args, r));
+    return bel_1.evaluate(op, r, new EvFnCont(k, args, r));
 }
 exports.evaluateApplication = evaluateApplication;
 
-},{"./bel":3,"./continuation":5,"./pair":8,"./sym":12,"./value":14}],2:[function(require,module,exports){
+},{"./bel":3,"./continuation":5,"./next":8,"./pair":9,"./sym":13,"./value":15}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const pair_1 = require("./pair");
 const continuation_1 = require("./continuation");
 const bel_1 = require("./bel");
+const next_1 = require("./next");
 class BeginCont extends continuation_1.Continuation {
     constructor(k, ex, r) {
         super(k);
@@ -111,25 +111,24 @@ class BeginCont extends continuation_1.Continuation {
         this.r = r;
     }
     resume(_) {
-        evaluateBegin(pair_1.cdr(this.ex), this.r, this.k);
+        return evaluateBegin(pair_1.cdr(this.ex), this.r, this.k);
     }
 }
 function evaluateBegin(ex, r, k) {
     if (pair_1.pair(ex)) {
         let p = ex;
         if (pair_1.pair(pair_1.cdr(p))) {
-            bel_1.evaluate(pair_1.car(p), r, new BeginCont(k, p, r));
+            return bel_1.evaluate(pair_1.car(p), r, new BeginCont(k, p, r));
         }
         else {
-            bel_1.evaluate(pair_1.car(p), r, k);
+            return bel_1.evaluate(pair_1.car(p), r, k);
         }
-        return;
     }
-    k.resume(null);
+    return new next_1.Next(k, null);
 }
 exports.evaluateBegin = evaluateBegin;
 
-},{"./bel":3,"./continuation":5,"./pair":8}],3:[function(require,module,exports){
+},{"./bel":3,"./continuation":5,"./next":8,"./pair":9}],3:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const type_1 = require("./type");
@@ -140,6 +139,7 @@ const iff_1 = require("./iff");
 const begin_1 = require("./begin");
 const set_1 = require("./set");
 const application_1 = require("./application");
+const next_1 = require("./next");
 function taggedList(x, tag) {
     return pair_1.pair(x) && pair_1.car(x) === tag;
 }
@@ -161,54 +161,45 @@ function selfEvaluating(x) {
         (sym_1.symbol(x) && (x === sym_1.t || x === o || x === apply)));
 }
 function evaluateQuote(v, _, k) {
-    k.resume(v);
+    return new next_1.Next(k, v);
 }
 function evaluateVariable(n, r, k) {
-    r.lookup(n, k);
+    return r.lookup(n, k);
 }
 function evaluateLambda(nx, ex, r, k) {
-    k.resume(new value_1.Fn(nx, ex, r));
+    return new next_1.Next(k, new value_1.Fn(nx, ex, r));
 }
 function evaluateMacro(nx, ex, r, k) {
-    k.resume(new value_1.Macro(nx, ex, r));
+    return new next_1.Next(k, new value_1.Macro(nx, ex, r));
 }
 function evaluate(e, r, k) {
     if (pair_1.atom(e)) {
         if (selfEvaluating(e)) {
-            evaluateQuote(e, r, k);
-            return;
+            return evaluateQuote(e, r, k);
         }
-        evaluateVariable(e, r, k);
-        return;
+        return evaluateVariable(e, r, k);
     }
     while (true) {
         let p = e;
         switch (pair_1.car(p)) {
             case quote:
-                evaluateQuote(pair_1.cadr(p), r, k);
-                break;
+                return evaluateQuote(pair_1.cadr(p), r, k);
             case bq:
                 e = bquote(pair_1.cadr(p));
                 continue;
             case iff:
-                iff_1.evaluateIf(pair_1.cadr(p), pair_1.caddr(p), pair_1.cdddr(p), r, k);
-                break;
+                return iff_1.evaluateIf(pair_1.cadr(p), pair_1.caddr(p), pair_1.cdddr(p), r, k);
             case begin:
-                begin_1.evaluateBegin(pair_1.cdr(p), r, k);
-                break;
+                return begin_1.evaluateBegin(pair_1.cdr(p), r, k);
             case set:
-                set_1.evaluateSet(pair_1.cadr(p), pair_1.caddr(p), r, k);
-                break;
+                return set_1.evaluateSet(pair_1.cadr(p), pair_1.caddr(p), r, k);
             case lambda:
-                evaluateLambda(pair_1.cadr(p), pair_1.cddr(p), r, k);
-                break;
+                return evaluateLambda(pair_1.cadr(p), pair_1.cddr(p), r, k);
             case macro:
-                evaluateMacro(pair_1.cadr(p), pair_1.cddr(p), r, k);
-                break;
+                return evaluateMacro(pair_1.cadr(p), pair_1.cddr(p), r, k);
             default:
-                application_1.evaluateApplication(pair_1.car(p), pair_1.cdr(p), r, k);
+                return application_1.evaluateApplication(pair_1.car(p), pair_1.cdr(p), r, k);
         }
-        break;
     }
 }
 exports.evaluate = evaluate;
@@ -230,7 +221,7 @@ function bquote(x) {
     return pair_1.join(sym_1.sym("join"), pair_1.join(bquote(tag), pair_1.join(bquote(pair_1.cdr(p)), null)));
 }
 
-},{"./application":1,"./begin":2,"./iff":7,"./pair":8,"./set":11,"./sym":12,"./type":13,"./value":14}],4:[function(require,module,exports){
+},{"./application":1,"./begin":2,"./iff":7,"./next":8,"./pair":9,"./set":12,"./sym":13,"./type":14,"./value":15}],4:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const type_1 = require("./type");
@@ -386,7 +377,10 @@ function gotExp(exp) {
 }
 function gotExpansion(exp) {
     try {
-        bel_1.evaluate(exp, env, baseCont);
+        let n = bel_1.evaluate(exp, env, baseCont);
+        while (n !== null) {
+            n = n.k.resume(n.v);
+        }
     }
     catch (e) {
         if (errOut !== null) {
@@ -407,7 +401,7 @@ function bel(s, err, exp, res) {
 }
 exports.bel = bel;
 
-},{"./bel":3,"./continuation":5,"./environment":6,"./pair":8,"./parse":9,"./print":10,"./sym":12,"./type":13,"./value":14}],5:[function(require,module,exports){
+},{"./bel":3,"./continuation":5,"./environment":6,"./pair":9,"./parse":10,"./print":11,"./sym":13,"./type":14,"./value":15}],5:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class Continuation {
@@ -423,6 +417,7 @@ class BaseCont extends Continuation {
     }
     resume(v) {
         this.f(v);
+        return null;
     }
 }
 exports.BaseCont = BaseCont;
@@ -432,6 +427,7 @@ exports.BaseCont = BaseCont;
 Object.defineProperty(exports, "__esModule", { value: true });
 const sym_1 = require("./sym");
 const pair_1 = require("./pair");
+const next_1 = require("./next");
 class Environment {
 }
 exports.Environment = Environment;
@@ -444,7 +440,7 @@ class NullEnv extends Environment {
     }
 }
 exports.NullEnv = NullEnv;
-const theEmptyEnvironment = new NullEnv();
+exports.theEmptyEnvironment = new NullEnv();
 class FullEnv extends Environment {
     constructor(other, name) {
         super();
@@ -456,10 +452,9 @@ exports.FullEnv = FullEnv;
 function lookup(e, n, k) {
     while (true) {
         if (e.name === n) {
-            k.resume(e.value);
-            return;
+            return new next_1.Next(k, e.value);
         }
-        if (e.other === theEmptyEnvironment) {
+        if (e.other === exports.theEmptyEnvironment) {
             throw new Error("Unknown variable: " + sym_1.nom(n));
         }
         e = e.other;
@@ -469,13 +464,11 @@ function update(e, n, k, v) {
     while (true) {
         if (e.name === n) {
             e.value = v;
-            k.resume(v);
-            return;
+            return new next_1.Next(k, v);
         }
-        if (e.other === theEmptyEnvironment) {
-            e.other = new VariableEnv(theEmptyEnvironment, n, v);
-            k.resume(v);
-            return;
+        if (e.other === exports.theEmptyEnvironment) {
+            e.other = new VariableEnv(exports.theEmptyEnvironment, n, v);
+            return new next_1.Next(k, v);
         }
         e = e.other;
     }
@@ -486,14 +479,14 @@ class VariableEnv extends FullEnv {
         this.value = value;
     }
     lookup(n, k) {
-        lookup(this, n, k);
+        return lookup(this, n, k);
     }
     update(n, k, v) {
-        update(this, n, k, v);
+        return update(this, n, k, v);
     }
 }
 exports.VariableEnv = VariableEnv;
-exports.initialEnvironment = new VariableEnv(theEmptyEnvironment, sym_1.sym("version"), 0.1);
+exports.initialEnvironment = new VariableEnv(exports.theEmptyEnvironment, sym_1.sym("version"), 0.1);
 function extendEnv(env, names, values) {
     if (pair_1.pair(names) && pair_1.pair(values)) {
         let n = pair_1.car(names);
@@ -517,12 +510,13 @@ function extendEnv(env, names, values) {
 }
 exports.extendEnv = extendEnv;
 
-},{"./pair":8,"./sym":12}],7:[function(require,module,exports){
+},{"./next":8,"./pair":9,"./sym":13}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const pair_1 = require("./pair");
 const continuation_1 = require("./continuation");
 const bel_1 = require("./bel");
+const next_1 = require("./next");
 class IfCont extends continuation_1.Continuation {
     constructor(k, et, ef, r) {
         super(k);
@@ -534,28 +528,37 @@ class IfCont extends continuation_1.Continuation {
         let k = this.k;
         if (v === null) {
             if (this.ef === null) {
-                k.resume(null);
-                return;
+                return new next_1.Next(k, null);
             }
             const p = this.ef;
             const alt = pair_1.car(p);
             if (pair_1.cddr(p) === null) {
-                bel_1.evaluate(alt, this.r, k);
-                return;
+                return bel_1.evaluate(alt, this.r, k);
             }
-            evaluateIf(alt, pair_1.cadr(p), pair_1.cddr(p), this.r, k);
+            return evaluateIf(alt, pair_1.cadr(p), pair_1.cddr(p), this.r, k);
         }
         else {
-            bel_1.evaluate(this.et, this.r, k);
+            return bel_1.evaluate(this.et, this.r, k);
         }
     }
 }
 function evaluateIf(ec, et, ef, r, k) {
-    bel_1.evaluate(ec, r, new IfCont(k, et, ef, r));
+    return bel_1.evaluate(ec, r, new IfCont(k, et, ef, r));
 }
 exports.evaluateIf = evaluateIf;
 
-},{"./bel":3,"./continuation":5,"./pair":8}],8:[function(require,module,exports){
+},{"./bel":3,"./continuation":5,"./next":8,"./pair":9}],8:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+class Next {
+    constructor(k, v) {
+        this.k = k;
+        this.v = v;
+    }
+}
+exports.Next = Next;
+
+},{}],9:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const type_1 = require("./type");
@@ -635,7 +638,7 @@ function length(xs) {
 }
 exports.length = length;
 
-},{"./type":13}],9:[function(require,module,exports){
+},{"./type":14}],10:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const sym_1 = require("./sym");
@@ -902,7 +905,7 @@ function unqn(qn, xs) {
     return xs;
 }
 
-},{"./pair":8,"./sym":12}],10:[function(require,module,exports){
+},{"./pair":9,"./sym":13}],11:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const sym_1 = require("./sym");
@@ -1026,7 +1029,7 @@ function prs(x, f) {
 }
 exports.prs = prs;
 
-},{"./pair":8,"./sym":12,"./value":14}],11:[function(require,module,exports){
+},{"./pair":9,"./sym":13,"./value":15}],12:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const continuation_1 = require("./continuation");
@@ -1038,15 +1041,15 @@ class SetCont extends continuation_1.Continuation {
         this.r = r;
     }
     resume(v) {
-        this.r.update(this.n, this.k, v);
+        return this.r.update(this.n, this.k, v);
     }
 }
 function evaluateSet(n, e, r, k) {
-    bel_1.evaluate(e, r, new SetCont(k, n, r));
+    return bel_1.evaluate(e, r, new SetCont(k, n, r));
 }
 exports.evaluateSet = evaluateSet;
 
-},{"./bel":3,"./continuation":5}],12:[function(require,module,exports){
+},{"./bel":3,"./continuation":5}],13:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 function nom(sym) {
@@ -1067,7 +1070,7 @@ function symbol(x) {
 exports.symbol = symbol;
 exports.t = sym("t");
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class Cell {
@@ -1086,13 +1089,14 @@ function string(x) {
 }
 exports.string = string;
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const sym_1 = require("./sym");
 const pair_1 = require("./pair");
 const environment_1 = require("./environment");
 const begin_1 = require("./begin");
+const next_1 = require("./next");
 class Value {
 }
 exports.Value = Value;
@@ -1103,12 +1107,21 @@ class Fn extends Value {
         this.body = body;
         this.env = env;
     }
-    invoke(vx, _, k) {
+    invoke(vx, k) {
         let env = environment_1.extendEnv(this.env, this.variables, vx);
-        begin_1.evaluateBegin(this.body, env, k);
+        return begin_1.evaluateBegin(this.body, env, k);
     }
 }
 exports.Fn = Fn;
+class K extends Fn {
+    constructor(k) {
+        super(null, null, environment_1.theEmptyEnvironment);
+        this.k = k;
+    }
+    invoke(vx, _) {
+        return new next_1.Next(this.k, vx);
+    }
+}
 class Macro extends Value {
     constructor(variables, body, env) {
         super();
@@ -1116,9 +1129,9 @@ class Macro extends Value {
         this.body = body;
         this.env = env;
     }
-    invoke(vx, _, k) {
+    invoke(vx, k) {
         let env = environment_1.extendEnv(this.env, this.variables, vx);
-        begin_1.evaluateBegin(this.body, env, k);
+        return begin_1.evaluateBegin(this.body, env, k);
     }
 }
 exports.Macro = Macro;
@@ -1128,25 +1141,25 @@ class Primitive extends Value {
         this.name = name;
         this.address = address;
     }
-    invoke(vx, r, k) {
-        this.address(vx, r, k);
+    invoke(vx, k) {
+        return this.address(vx, k);
     }
 }
 exports.Primitive = Primitive;
-exports.ccc = new Primitive(sym_1.sym("ccc"), function (vx, r, k) {
+exports.ccc = new Primitive(sym_1.sym("ccc"), function (vx, k) {
     const p = vx;
     if (pair_1.length(p) === 1) {
-        pair_1.car(p).invoke(pair_1.join(k, null), r, k);
-        return;
+        const f = pair_1.car(p);
+        const args = pair_1.join(new K(k), null);
+        return f.invoke(args, k);
     }
     throw new Error("bad arity: ccc");
 });
 function jsPrimitive(name, value, arity) {
-    return new Primitive(name, function (vx, _, k) {
+    return new Primitive(name, function (vx, k) {
         let args = pair_1.toArray(vx);
         if (args.length === arity) {
-            k.resume(value.apply(null, args));
-            return;
+            return new next_1.Next(k, value.apply(null, args));
         }
         throw new Error("bad arity: " + sym_1.nom(name));
     });
@@ -1165,7 +1178,7 @@ function prim(x) {
 }
 exports.prim = prim;
 
-},{"./begin":2,"./environment":6,"./pair":8,"./sym":12}],15:[function(require,module,exports){
+},{"./begin":2,"./environment":6,"./next":8,"./pair":9,"./sym":13}],16:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const boot_1 = require("./boot");
@@ -1259,4 +1272,4 @@ request.onerror = function () {
 request.send();
 repl.addEventListener("keyup", read, false);
 
-},{"./boot":4,"./print":10}]},{},[15]);
+},{"./boot":4,"./print":11}]},{},[16]);
