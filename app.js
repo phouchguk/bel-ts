@@ -34,11 +34,16 @@ class ApplyCont extends continuation_1.Continuation {
         this.r = r;
     }
     resume(args) {
+        let k = this.k;
         if (this.f === sym_1.sym("apply")) {
             this.f = pair_1.car(args);
+            if (value_1.macro(this.f)) {
+                console.log("MACRO APPLY");
+                k = new MacroCont(k, this.r);
+            }
             args = applyArgs(pair_1.cdr(args));
         }
-        this.f.invoke(args, this.r, this.k);
+        this.f.invoke(args, this.r, k);
     }
 }
 class ArgumentCont extends continuation_1.Continuation {
@@ -248,6 +253,7 @@ function prim(name, f, arity) {
     let s = sym_1.sym(name);
     env = new environment_1.VariableEnv(env, s, value_1.jsPrimitive(s, f, arity));
 }
+let gensym = 0;
 const t = sym_1.sym("t");
 prim("+", (a, b) => a + b, 2);
 prim("-", (a, b) => a - b, 2);
@@ -262,6 +268,7 @@ prim("xdr", pair_1.xdr, 2);
 prim("sym", sym_1.sym, 1);
 prim("nom", sym_1.nom, 1);
 prim("coin", () => (Math.random() * 2 > 1 ? t : null), 0);
+prim("uvar", () => sym_1.sym("_g" + gensym++), 0);
 prim("display", (s) => {
     console.log(s);
     return s;

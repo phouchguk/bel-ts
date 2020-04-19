@@ -17,6 +17,8 @@ function prim(name: string, f: any, arity: number) {
   env = new VariableEnv(env, s, jsPrimitive(s, f, arity));
 }
 
+let gensym: number = 0;
+
 const t: symbol = sym("t");
 prim("+", (a: number, b: number) => a + b, 2);
 prim("-", (a: number, b: number) => a - b, 2);
@@ -31,6 +33,7 @@ prim("xdr", xdr, 2);
 prim("sym", sym, 1);
 prim("nom", nom, 1);
 prim("coin", () => (Math.random() * 2 > 1 ? t : null), 0);
+prim("uvar", () => sym("_g" + gensym++), 0);
 
 prim(
   "display",
