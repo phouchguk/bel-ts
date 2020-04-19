@@ -7,6 +7,7 @@ import { BaseCont } from "./continuation";
 import { VariableEnv, initialEnvironment } from "./environment";
 import { evaluate } from "./bel";
 import { ccc, jsPrimitive } from "./value";
+import { Next } from "./next";
 
 const baseCont = new BaseCont(null, gotResult);
 
@@ -218,7 +219,11 @@ function gotExp(exp: BelT): void {
 function gotExpansion(exp: BelT): void {
   //pr("expansion", exp);
   try {
-    evaluate(exp, env, baseCont);
+    let n: Next | null = evaluate(exp, env, baseCont);
+
+    while (n !== null) {
+      n = n.k.resume(n.v);
+    }
   } catch (e) {
     if (errOut !== null) {
       errOut(e);

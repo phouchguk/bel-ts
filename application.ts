@@ -5,6 +5,7 @@ import { Continuation } from "./continuation";
 import { Environment } from "./environment";
 import { Macro, Value, macro } from "./value";
 import { evaluate } from "./bel";
+import { Next } from "./next";
 
 function applyArgs(args: Pair): Pair {
   // arrange args
@@ -37,22 +38,20 @@ function applyArgs(args: Pair): Pair {
 
 class ApplyCont extends Continuation {
   f: Value | symbol;
-  r: Environment;
 
-  constructor(k: Continuation, f: Value | symbol, r: Environment) {
+  constructor(k: Continuation, f: Value | symbol) {
     super(k);
 
     this.f = f;
-    this.r = r;
   }
 
-  resume(args: BelT): void {
+  resume(args: BelT): Next | null {
     if (this.f === sym("apply")) {
        this.f = car(args as Pair) as Value;
        args = applyArgs(cdr(args as Pair) as Pair);
     }
 
-    (this.f as Value).invoke(args, this.r, this.k as Continuation);
+    return (this.f as Value).invoke(args, this.k as Continuation);
   }
 }
 
@@ -67,8 +66,8 @@ class ArgumentCont extends Continuation {
     this.r = r;
   }
 
-  resume(arg: BelT): void {
-    evaluateArguments(
+  resume(arg: BelT): Next | null {
+    return evaluateArguments(
       cdr(this.remaining as Pair),
       this.r,
       new GatherCont(this.k as Continuation, arg)
@@ -86,9 +85,9 @@ class MacroCont extends Continuation {
     this.r = r;
   }
 
-  resume(expanded: BelT): void {
+  resume(expanded: BelT): Next | null {
     //pr("macro", expanded);
-    evaluate(expanded, this.r, this.k as Continuation);
+    return evaluate(expanded, this.r, this.k as Continuation);
   }
 }
 
@@ -103,21 +102,20 @@ class EvFnCont extends Continuation {
     this.r = r;
   }
 
-  resume(op: BelT): void {
+  resume(op: BelT): Next | null {
     if (macro(op)) {
       let m: Macro = op as Macro;
 
-      // evaulate macro with unevaluated args, pass to MacroCont which evaluates the expansion
-      m.invoke(
+      // evaluate macro with unevaluated args, pass to MacroCont which evaluates the expansion
+      return m.invoke(
         this.args,
-        this.r,
         new MacroCont(this.k as Continuation, this.r)
       );
     } else {
-      evaluateArguments(
+      return evaluateArguments(
         this.args,
         this.r,
-        new ApplyCont(this.k as Continuation, op as Value, this.r)
+        new ApplyCont(this.k as Continuation, op as Value)
       );
     }
   }
@@ -132,20 +130,19 @@ class GatherCont extends Continuation {
     this.arg = arg;
   }
 
-  resume(args: BelT): void {
-    (this.k as Continuation).resume(join(this.arg, args));
+  resume(args: BelT): Next | null {
+    return (this.k as Continuation).resume(join(this.arg, args));
   }
 }
 
 const noMoreArguments: null = null;
 
-function evaluateArguments(args: BelT, r: Environment, k: Continuation) {
+function evaluateArguments(args: BelT, r: Environment, k: Continuation): Next {
   if (pair(args)) {
-    evaluate(car(args as Pair), r, new ArgumentCont(k, args, r));
-    return;
+    return evaluate(car(args as Pair), r, new ArgumentCont(k, args, r));
   }
 
-  k.resume(noMoreArguments);
+  return new Next(k, noMoreArguments);
 }
 
 export function evaluateApplication(
@@ -153,6 +150,6 @@ export function evaluateApplication(
   args: BelT,
   r: Environment,
   k: Continuation
-): void {
-  evaluate(op, r, new EvFnCont(k, args, r));
+): Next {
+  return evaluate(op, r, new EvFnCont(k, args, r));
 }

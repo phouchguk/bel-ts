@@ -8,6 +8,7 @@ import { evaluateIf } from "./iff";
 import { evaluateBegin } from "./begin";
 import { evaluateSet } from "./set";
 import { evaluateApplication } from "./application";
+import { Next } from "./next";
 //import { pr } from "./print";
 
 function taggedList(x: Pair, tag: symbol): boolean {
@@ -35,12 +36,12 @@ function selfEvaluating(x: BelT): boolean {
   );
 }
 
-function evaluateQuote(v: BelT, _: Environment, k: Continuation): void {
-  k.resume(v);
+function evaluateQuote(v: BelT, _: Environment, k: Continuation): Next {
+  return new Next(k, v);
 }
 
-function evaluateVariable(n: symbol, r: Environment, k: Continuation): void {
-  r.lookup(n, k);
+function evaluateVariable(n: symbol, r: Environment, k: Continuation): Next {
+  return r.lookup(n, k);
 }
 
 function evaluateLambda(
@@ -48,8 +49,8 @@ function evaluateLambda(
   ex: BelT,
   r: Environment,
   k: Continuation
-): void {
-  k.resume(new Fn(nx, ex, r));
+): Next {
+  return new Next(k, new Fn(nx, ex, r));
 }
 
 function evaluateMacro(
@@ -57,19 +58,17 @@ function evaluateMacro(
   ex: BelT,
   r: Environment,
   k: Continuation
-): void {
-  k.resume(new Macro(nx, ex, r));
+): Next {
+  return new Next(k, new Macro(nx, ex, r));
 }
 
-export function evaluate(e: BelT, r: Environment, k: Continuation): void {
+export function evaluate(e: BelT, r: Environment, k: Continuation): Next {
   if (atom(e)) {
     if (selfEvaluating(e)) {
-      evaluateQuote(e, r, k);
-      return;
+      return evaluateQuote(e, r, k);
     }
 
-    evaluateVariable(e as symbol, r, k);
-    return;
+    return evaluateVariable(e as symbol, r, k);
   }
 
   while (true) {
@@ -77,38 +76,31 @@ export function evaluate(e: BelT, r: Environment, k: Continuation): void {
 
     switch (car(p)) {
       case quote:
-        evaluateQuote(cadr(p), r, k);
-        break;
+        return evaluateQuote(cadr(p), r, k);
 
       case bq:
+        // should be in expand?
         e = bquote(cadr(p));
         continue;
 
       case iff:
-        evaluateIf(cadr(p), caddr(p), cdddr(p), r, k);
-        break;
+        return evaluateIf(cadr(p), caddr(p), cdddr(p), r, k);
 
       case begin:
-        evaluateBegin(cdr(p), r, k);
-        break;
+        return evaluateBegin(cdr(p), r, k);
 
       case set:
-        evaluateSet(cadr(p) as symbol, caddr(p), r, k);
-        break;
+        return evaluateSet(cadr(p) as symbol, caddr(p), r, k);
 
       case lambda:
-        evaluateLambda(cadr(p), cddr(p), r, k);
-        break;
+        return evaluateLambda(cadr(p), cddr(p), r, k);
 
       case macro:
-        evaluateMacro(cadr(p), cddr(p), r, k);
-        break;
+        return evaluateMacro(cadr(p), cddr(p), r, k);
 
       default:
-        evaluateApplication(car(p), cdr(p), r, k);
+        return evaluateApplication(car(p), cdr(p), r, k);
     }
-
-    break;
   }
 }
 

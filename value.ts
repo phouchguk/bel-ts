@@ -3,14 +3,14 @@ import { nom, sym } from "./sym";
 import { car, join, length, toArray } from "./pair";
 import { Continuation } from "./continuation";
 import { Environment, VariableEnv, extendEnv } from "./environment";
-
 import { evaluateBegin } from "./begin";
+import { Next } from "./next";
 
 export abstract class Value {
-  abstract invoke(vx: BelT, r: Environment, k: Continuation): void;
+  abstract invoke(vx: BelT, k: Continuation): Next;
 }
 
-type Invokeable = (vx: BelT, _: Environment, k: Continuation) => void;
+type Invokeable = (vx: BelT, k: Continuation) => Next;
 
 export class Fn extends Value {
   variables: BelT;
@@ -25,9 +25,9 @@ export class Fn extends Value {
     this.env = env;
   }
 
-  invoke(vx: BelT, _: Environment, k: Continuation): void {
+  invoke(vx: BelT, k: Continuation): Next {
     let env = extendEnv(this.env as VariableEnv, this.variables, vx);
-    evaluateBegin(this.body, env, k);
+    return evaluateBegin(this.body, env, k);
   }
 }
 
@@ -44,9 +44,9 @@ export class Macro extends Value {
     this.env = env;
   }
 
-  invoke(vx: BelT, _: Environment, k: Continuation): void {
+  invoke(vx: BelT, k: Continuation): Next {
     let env = extendEnv(this.env as VariableEnv, this.variables, vx);
-    evaluateBegin(this.body, env, k);
+    return evaluateBegin(this.body, env, k);
   }
 }
 
@@ -61,21 +61,19 @@ export class Primitive extends Value {
     this.address = address;
   }
 
-  invoke(vx: BelT, r: Environment, k: Continuation): void {
-    this.address(vx, r, k);
+  invoke(vx: BelT, k: Continuation): Next {
+    return this.address(vx, k);
   }
 }
 
 export const ccc = new Primitive(sym("ccc"), function(
   vx: BelT,
-  r: Environment,
   k: Continuation
 ) {
   const p: Pair = vx as Pair;
 
   if (length(p) === 1) {
-    (car(p) as Value).invoke(join(k, null), r, k);
-    return;
+    return (car(p) as Value).invoke(join(k, null),  k);
   }
 
   throw new Error("bad arity: ccc");
@@ -88,14 +86,12 @@ export function jsPrimitive(
 ): Primitive {
   return new Primitive(name, function(
     vx: BelT,
-    _: Environment,
     k: Continuation
   ) {
     let args: BelT[] = toArray(vx as Pair);
 
     if (args.length === arity) {
-      k.resume(value.apply(null, args));
-      return;
+      return new Next(k, value.apply(null, args));
     }
 
     throw new Error("bad arity: " + nom(name));

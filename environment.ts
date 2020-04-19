@@ -2,18 +2,19 @@ import { BelT, Pair } from "./type";
 import { nom, sym, symbol } from "./sym";
 import { car, cdr, pair } from "./pair";
 import { Continuation } from "./continuation";
+import { Next } from "./next";
 
 export abstract class Environment {
-  abstract lookup(n: symbol, k: Continuation): void;
-  abstract update(n: symbol, k: Continuation, v: BelT): void;
+  abstract lookup(n: symbol, k: Continuation): Next;
+  abstract update(n: symbol, k: Continuation, v: BelT): Next;
 }
 
 export class NullEnv extends Environment {
-  lookup(n: symbol, _: Continuation): void {
+  lookup(n: symbol, _: Continuation): Next {
     throw new Error("Unknown variable: " + nom(n));
   }
 
-  update(n: symbol, _k: Continuation, _v: BelT): void {
+  update(n: symbol, _k: Continuation, _v: BelT): Next {
     throw new Error("unknown variable: " + nom(n));
   }
 }
@@ -32,11 +33,10 @@ export abstract class FullEnv extends Environment {
   }
 }
 
-function lookup(e: VariableEnv, n: symbol, k: Continuation) {
+function lookup(e: VariableEnv, n: symbol, k: Continuation): Next {
   while (true) {
     if (e.name === n) {
-      k.resume(e.value);
-      return;
+      return new Next(k, e.value);
     }
 
     if (e.other === theEmptyEnvironment) {
@@ -47,19 +47,16 @@ function lookup(e: VariableEnv, n: symbol, k: Continuation) {
   }
 }
 
-function update(e: VariableEnv, n: symbol, k: Continuation, v: BelT) {
+function update(e: VariableEnv, n: symbol, k: Continuation, v: BelT): Next {
   while (true) {
     if (e.name === n) {
       e.value = v;
-      k.resume(v);
-
-      return;
+      return new Next(k, v);
     }
 
     if (e.other === theEmptyEnvironment) {
       e.other = new VariableEnv(theEmptyEnvironment, n, v);
-      k.resume(v);
-      return;
+      return new Next(k, v);
     }
 
     e = e.other as VariableEnv;
@@ -75,12 +72,12 @@ export class VariableEnv extends FullEnv {
     this.value = value;
   }
 
-  lookup(n: symbol, k: Continuation): void {
-    lookup(this, n, k);
+  lookup(n: symbol, k: Continuation): Next {
+    return lookup(this, n, k);
   }
 
-  update(n: symbol, k: Continuation, v: BelT): void {
-    update(this, n, k, v);
+  update(n: symbol, k: Continuation, v: BelT): Next {
+    return update(this, n, k, v);
   }
 }
 

@@ -3,6 +3,7 @@ import { car, cadr, cddr } from "./pair";
 import { Continuation } from "./continuation";
 import { Environment } from "./environment";
 import { evaluate } from "./bel";
+import { Next } from "./next";
 
 class IfCont extends Continuation {
   et: BelT;
@@ -17,14 +18,13 @@ class IfCont extends Continuation {
     this.r = r;
   }
 
-  resume(v: BelT): void {
+  resume(v: BelT): Next | null {
     let k: Continuation = this.k as Continuation;
 
     if (v === null) {
        if (this.ef === null) {
          // no alternative
-         k.resume(null);
-         return;
+         return new Next(k, null);
        }
 
        const p: Pair = this.ef as Pair;
@@ -32,14 +32,13 @@ class IfCont extends Continuation {
 
        if (cddr(p) === null) {
          // last alternative
-         evaluate(alt, this.r, k);
-         return;
+         return evaluate(alt, this.r, k);
        }
 
        // alt cond
-       evaluateIf(alt, cadr(p), cddr(p), this.r, k);
+       return evaluateIf(alt, cadr(p), cddr(p), this.r, k);
     } else {
-      evaluate(this.et, this.r, k);
+      return evaluate(this.et, this.r, k);
     }
   }
 }
@@ -50,6 +49,6 @@ export function evaluateIf(
   ef: BelT,
   r: Environment,
   k: Continuation
-) {
-  evaluate(ec, r, new IfCont(k, et, ef, r));
+): Next {
+  return evaluate(ec, r, new IfCont(k, et, ef, r));
 }

@@ -1,13 +1,14 @@
 import { BelT, ExpressionHandler } from "./type";
+import { Next } from "./next";
 
 export abstract class Continuation {
   k: Continuation | null;
 
-  abstract resume(v: BelT): void;
-
   constructor(k: Continuation | null) {
     this.k = k;
   }
+
+  abstract resume(v: BelT): Next | null;
 }
 
 export class BaseCont extends Continuation {
@@ -19,7 +20,8 @@ export class BaseCont extends Continuation {
     this.f = f;
   }
 
-  resume(v: BelT): void {
+  resume(v: BelT): Next | null  {
     this.f(v);
+    return null;
   }
 }
