@@ -63,6 +63,54 @@
   (reduce (fn es (cons 'if es))
           (or args '(t))))
 
+(def = args
+  (if (no (cdr args))  t
+      (some atom args) (all [id _ (car args)] (cdr args))
+                       (and (apply = (map car args))
+                            (apply = (map cdr args)))))
+
+(def symbol (x) (= (type x) 'symbol))
+
+(def pair   (x) (= (type x) 'pair))
+
+(def string (x) (= (type x) 'string))
+
+(def stream (x) (= (type x) 'stream))
+
+(def proper (x)
+  (or (no x)
+      (and (pair x) (proper (cdr x)))))
+
+(def cadr  (x) (car (cdr x)))
+
+(def cddr  (x) (cdr (cdr x)))
+
+(def caddr (x) (car (cddr x)))
+
+(mac case (expr . args)
+  (if (no (cdr args))
+      (car args)
+      (let v (uvar)
+        `(let ,v ,expr
+           (if (= ,v ',(car args))
+               ,(cadr args)
+               (case ,v ,@(cddr args)))))))
+
+(mac iflet (var . args)
+  (if (no (cdr args))
+      (car args)
+      (let v (uvar)
+        `(let ,v ,(car args)
+           (if ,v
+               (let ,var ,v ,(cadr args))
+               (iflet ,var ,@(cddr args)))))))
+
+(mac aif args
+  `(iflet it ,@args))
+
+(def find (f xs)
+  (aif (some f xs) (car it)))
+
 ;; tests
 
 (set double (macro (x) `(+ ,x ,x)))
@@ -113,3 +161,19 @@
 
 (let x 'a
     (cons x 'b))
+
+(proper nil)
+
+(proper '(a . b))
+
+(proper '(a b))
+
+(string "foo")
+
+(def sname (s)
+  (case s
+    + 'plus
+    - 'minus
+      'unknown))
+
+(sname '+)
