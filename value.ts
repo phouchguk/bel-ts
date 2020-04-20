@@ -2,7 +2,12 @@ import { BelT, Pair } from "./type";
 import { nom, sym } from "./sym";
 import { car, join, length, toArray } from "./pair";
 import { Continuation } from "./continuation";
-import { Environment, VariableEnv, extendEnv, theEmptyEnvironment } from "./environment";
+import {
+  Environment,
+  VariableEnv,
+  extendEnv,
+  theEmptyEnvironment
+} from "./environment";
 import { evaluateBegin } from "./begin";
 import { Next } from "./next";
 
@@ -41,7 +46,7 @@ class K extends Fn {
   }
 
   invoke(vx: BelT, _: Continuation): Next {
-    return new Next(this.k, vx);
+    return new Next(this.k, car(vx as Pair));
   }
 }
 
@@ -101,10 +106,7 @@ export function jsPrimitive(
   value: any,
   arity: number
 ): Primitive {
-  return new Primitive(name, function(
-    vx: BelT,
-    k: Continuation
-  ) {
+  return new Primitive(name, function(vx: BelT, k: Continuation) {
     let args: BelT[] = toArray(vx as Pair);
 
     if (args.length === arity) {

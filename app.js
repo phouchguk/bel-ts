@@ -1119,7 +1119,7 @@ class K extends Fn {
         this.k = k;
     }
     invoke(vx, _) {
-        return new next_1.Next(this.k, vx);
+        return new next_1.Next(this.k, pair_1.car(vx));
     }
 }
 class Macro extends Value {
