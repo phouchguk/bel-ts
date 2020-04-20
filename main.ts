@@ -4,16 +4,17 @@ import { bel } from "./boot";
 import { prs } from "./print";
 
 function gotErr(err: string): void {
-  console.log("error", err);
+  console.log(err);
 }
 
 function gotExp(exp: string): void {
-  console.log("expression", exp);
+  console.log(exp);
 }
 
 function gotResult(exp: BelT): void {
   prs(exp, function(result) {
-    console.log("result", result);
+    console.log(result);
+    console.log();
   });
 }
 
@@ -30,12 +31,7 @@ readStream
     );
     */
 
-    bel(
-      "'ok",
-      gotErr,
-      gotExp,
-      gotResult
-    );
+    bel("'ok", gotErr, gotExp, gotResult);
 
     //bel("x|~f:g!a", gotExp);
 
